@@ -282,7 +282,24 @@ with st.spinner("Loading GSC data..."):
 if df.empty:
     st.write("Secrets found:", list(st.secrets.keys()))
     st.write("GSC property:", st.secrets["gsc"]["property_url"])
-    st.error("No data loaded. Check your GSC credentials and property URL in Streamlit secrets.")
+    service = get_gsc_service()
+    if service:
+        st.success("GSC service connected ✓")
+        try:
+            test = service.searchanalytics().query(
+                siteUrl=st.secrets["gsc"]["property_url"],
+                body={
+                    "startDate": "2025-11-01",
+                    "endDate": "2025-11-30",
+                    "dimensions": ["query"],
+                    "rowLimit": 5
+                }
+            ).execute()
+            st.write("API response:", test)
+        except Exception as e:
+            st.error(f"API call failed: {e}")
+    else:
+        st.error("GSC service failed to connect")
     st.stop()
 
 # Apply filters

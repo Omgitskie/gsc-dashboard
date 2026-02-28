@@ -146,20 +146,9 @@ def classify_query(query):
     return "Other", None
 
 # ── GSC CONNECTION ───────────────────────────────────────────
-@st.cache_resource
-def get_gsc_service():
-    try:
-        import json
-        credentials_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        credentials = service_account.Credentials.from_service_account_info(
-            credentials_info,
-            scopes=["https://www.googleapis.com/auth/webmasters.readonly"]
-        )
-        service = build("searchconsole", "v1", credentials=credentials)
-        return service
-    except Exception as e:
-        st.error(f"Connection error: {e}")
-        return None
+if df.empty:
+    st.error("No data loaded. Check your GSC credentials and property URL in Streamlit secrets.")
+    st.stop()
 
 @st.cache_data(ttl=3600)
 def fetch_gsc_data(start_date, end_date):

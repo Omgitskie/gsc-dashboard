@@ -603,20 +603,6 @@ elif page == "🏆 Winners & Losers":
         winners.columns = ["Query", "Segment", "Clicks (Now)", "Clicks (Prev)", "Change", "Change %", "Position"]
         winners["Change %"] = winners["Change %"].apply(lambda x: f"▲ {abs(x)}%")
         st.dataframe(winners, use_container_width=True, hide_index=True)
-
-        st.markdown("---")
-        if st.button("📤 Export all unclassified to Google Sheet", key="export_unclassified"):
-        service = get_sheets_service()
-        sheet_id = st.secrets["sheets"]["sheet_id"]
-        rows = [[row["query"], "", ""] for _, row in other_df.iterrows()]
-        service.spreadsheets().values().append(
-        spreadsheetId=sheet_id,
-        range="Sheet1!A:C",
-        valueInputOption="RAW",
-        insertDataOption="INSERT_ROWS",
-        body={"values": rows}
-        ).execute()
-        st.success(f"✓ Exported {len(rows)} queries to Google Sheet")
     
     with tab2:
         st.markdown('<div class="section-header">Biggest Click Drops</div>', unsafe_allow_html=True)

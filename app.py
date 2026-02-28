@@ -51,7 +51,7 @@ ALL_SEGMENTS = [
     "Generic Sex Shop",
     "Product",
     "Category",
-    "Other"
+    "Other",
     "Not Relevant"
 ]
 
@@ -149,7 +149,6 @@ def get_sheets_service():
 
 # ── GOOGLE SHEETS HELPERS ────────────────────────────────────
 def load_classifications():
-    """Load manual classifications from Google Sheet."""
     try:
         service = get_sheets_service()
         sheet_id = st.secrets["sheets"]["sheet_id"]
@@ -162,6 +161,7 @@ def load_classifications():
             return {}
         padded = [row + [""] * (3 - len(row)) for row in values[1:]]
         df = pd.DataFrame(padded, columns=["query", "segment", "store"])
+        df = df[df["segment"] != ""]
         df["store"] = df["store"].replace("", None)
         return dict(zip(df["query"], zip(df["segment"], df["store"])))
     except Exception as e:
@@ -169,30 +169,22 @@ def load_classifications():
         return {}
 
 def save_classification(query, segment, store=None):
-    """Save or update a single classification in Google Sheet."""
     try:
         service = get_sheets_service()
         sheet_id = st.secrets["sheets"]["sheet_id"]
-
-        # Load existing to check if query already exists
         result = service.spreadsheets().values().get(
             spreadsheetId=sheet_id,
             range="Sheet1!A:C"
         ).execute()
         values = result.get("values", [])
-
-        # Find if query exists
         row_index = None
         for i, row in enumerate(values):
             if row and row[0] == query:
                 row_index = i + 1
                 break
-
         store_val = store if store else ""
         new_row = [query, segment, store_val]
-
         if row_index:
-            # Update existing row
             service.spreadsheets().values().update(
                 spreadsheetId=sheet_id,
                 range=f"Sheet1!A{row_index}:C{row_index}",
@@ -200,7 +192,6 @@ def save_classification(query, segment, store=None):
                 body={"values": [new_row]}
             ).execute()
         else:
-            # Append new row
             service.spreadsheets().values().append(
                 spreadsheetId=sheet_id,
                 range="Sheet1!A:C",
@@ -208,8 +199,6 @@ def save_classification(query, segment, store=None):
                 insertDataOption="INSERT_ROWS",
                 body={"values": [new_row]}
             ).execute()
-
-        # Clear cache so classifications reload
         st.cache_data.clear()
         return True
     except Exception as e:
@@ -217,20 +206,16 @@ def save_classification(query, segment, store=None):
         return False
 
 def delete_classification(query):
-    """Remove a classification from Google Sheet."""
     try:
         service = get_sheets_service()
         sheet_id = st.secrets["sheets"]["sheet_id"]
-
         result = service.spreadsheets().values().get(
             spreadsheetId=sheet_id,
             range="Sheet1!A:C"
         ).execute()
         values = result.get("values", [])
-
         for i, row in enumerate(values):
             if row and row[0] == query:
-                # Clear the row
                 service.spreadsheets().values().clear(
                     spreadsheetId=sheet_id,
                     range=f"Sheet1!A{i+1}:C{i+1}"
@@ -242,24 +227,43 @@ def delete_classification(query):
         st.error(f"Could not delete classification: {e}")
         return False
 
+def export_unclassified_to_sheet(other_df):
+    try:
+        service = get_sheets_service()
+        sheet_id = st.secrets["sheets"]["sheet_id"]
+        result = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id,
+            range="Sheet1!A:A"
+        ).execute()
+        existing = [row[0] for row in result.get("values", []) if row]
+        new_rows = [
+            [row["query"], "", ""]
+            for _, row in other_df.iterrows()
+            if row["query"] not in existing
+        ]
+        if new_rows:
+            service.spreadsheets().values().append(
+                spreadsheetId=sheet_id,
+                range="Sheet1!A:C",
+                valueInputOption="RAW",
+                insertDataOption="INSERT_ROWS",
+                body={"values": new_rows}
+            ).execute()
+        return len(new_rows)
+    except Exception as e:
+        st.error(f"Export failed: {e}")
+        return 0
+
 # ── SEGMENT CLASSIFIER ───────────────────────────────────────
 def classify_query(query, manual_classifications=None):
-    """Classify a query, checking manual overrides first."""
     q = query.lower().strip()
-
-    # Check manual classifications first
     if manual_classifications and query in manual_classifications:
         seg, store = manual_classifications[query]
         return seg, store
-
-    # Check noise
     if any(n in q for n in NOISE_TERMS):
         if not any(b in q for b in BRAND_PURE_TERMS):
             return "Noise", None
-
     is_brand = any(b in q for b in BRAND_PURE_TERMS)
-
-    # Check store locations
     for store, terms in STORE_LOCATIONS.items():
         for term in terms:
             if term in q:
@@ -271,19 +275,14 @@ def classify_query(query, manual_classifications=None):
                     return "Brand + Location", store
                 else:
                     return "Store & Local", store
-
     if is_brand:
         return "Brand (Pure)", None
-
     if any(t in q for t in NEAR_ME_TERMS):
         return "Store Intent (Near Me)", None
-
     if any(t in q for t in ONLINE_TERMS):
         return "Online / National", None
-
     if "sex shop" in q or "sex shops" in q or "adult shop" in q or "adult store" in q:
         return "Generic Sex Shop", None
-
     return "Other", None
 
 # ── DATA FETCHER ─────────────────────────────────────────────
@@ -292,9 +291,7 @@ def fetch_gsc_data(start_date, end_date):
     service = get_gsc_service()
     if not service:
         return pd.DataFrame()
-
     property_url = st.secrets["gsc"]["property_url"]
-
     try:
         response = service.searchanalytics().query(
             siteUrl=property_url,
@@ -306,14 +303,10 @@ def fetch_gsc_data(start_date, end_date):
                 "dataState": "final"
             }
         ).execute()
-
         rows = response.get("rows", [])
         if not rows:
             return pd.DataFrame()
-
-        # Load manual classifications once for this fetch
         manual = load_classifications()
-
         data = []
         for row in rows:
             query = row["keys"][0]
@@ -329,11 +322,9 @@ def fetch_gsc_data(start_date, end_date):
                 "segment": segment,
                 "store": store
             })
-
         df = pd.DataFrame(data)
         df["date"] = pd.to_datetime(df["date"])
         return df
-
     except Exception as e:
         st.error(f"Data fetch error: {e}")
         return pd.DataFrame()
@@ -393,17 +384,16 @@ with st.sidebar:
 
     start_str = start.strftime("%Y-%m-%d")
     end_str = end.strftime("%Y-%m-%d")
-
     period_days = (end - start).days
     prev_end = start - timedelta(days=1)
     prev_start = prev_end - timedelta(days=period_days)
 
     st.markdown("---")
     st.markdown("### Filters")
-    segment_filter = st.multiselect("Segments", ALL_SEGMENTS,
-        default=[s for s in ALL_SEGMENTS if s not in ["Other", "Noise"]]
+    segment_filter = st.multiselect(
+        "Segments", ALL_SEGMENTS,
+        default=[s for s in ALL_SEGMENTS if s not in ["Other", "Noise", "Not Relevant"]]
     )
-
     store_filter = st.selectbox("Store Location", ["All Stores"] + list(STORE_LOCATIONS.keys()))
 
     st.markdown("---")
@@ -422,7 +412,6 @@ with st.spinner("Loading GSC data..."):
         df = pd.DataFrame()
         df_prev = pd.DataFrame()
 
-# ── EMPTY DATA CHECK ─────────────────────────────────────────
 if df.empty:
     st.error("No data loaded. Check your GSC credentials and property URL in Streamlit secrets.")
     st.stop()
@@ -467,7 +456,6 @@ if page == "🏠 Overview":
     curr_imp = df_filtered["impressions"].sum()
     curr_ctr = round(curr_clicks / curr_imp * 100, 2) if curr_imp > 0 else 0
     curr_pos = round(df_filtered["position"].mean(), 1)
-
     prev_clicks = df_prev_filtered["clicks"].sum()
     prev_imp = df_prev_filtered["impressions"].sum()
     prev_ctr = round(prev_clicks / prev_imp * 100, 2) if prev_imp > 0 else 0
@@ -480,8 +468,8 @@ if page == "🏠 Overview":
     with c4: scorecard("Avg Position", curr_pos, prev_pos, lambda x: f"{x}")
 
     st.markdown("---")
-
     st.markdown('<div class="section-header">Clicks & Impressions Over Time</div>', unsafe_allow_html=True)
+
     weekly = df_filtered.copy()
     weekly["week"] = weekly["date"].dt.to_period("W").dt.start_time
     weekly_agg = weekly.groupby("week").agg(
@@ -555,7 +543,6 @@ if page == "🏠 Overview":
     pos_weekly["week"] = pos_weekly["date"].dt.to_period("W").dt.start_time
     pos_agg = pos_weekly.groupby("week").agg(Position=("position", "mean")).reset_index()
     pos_agg["Position"] = pos_agg["Position"].round(1)
-
     fig2 = px.line(pos_agg, x="week", y="Position", color_discrete_sequence=["#E74C3C"])
     fig2.update_traces(line=dict(width=2.5))
     fig2.update_yaxes(autorange="reversed", title="Avg Position (lower = better)", gridcolor="#f0f0f0")
@@ -576,12 +563,10 @@ elif page == "🏆 Winners & Losers":
         impressions=("impressions", "sum"),
         position=("position", "mean")
     ).reset_index()
-
     prev_q = df_prev_filtered.groupby(["query"]).agg(
         clicks_prev=("clicks", "sum"),
         position_prev=("position", "mean")
     ).reset_index()
-
     merged = curr_q.merge(prev_q, on="query", how="outer").fillna(0)
     merged["click_change"] = merged["clicks"] - merged["clicks_prev"]
     merged["click_change_pct"] = merged.apply(
@@ -603,7 +588,7 @@ elif page == "🏆 Winners & Losers":
         winners.columns = ["Query", "Segment", "Clicks (Now)", "Clicks (Prev)", "Change", "Change %", "Position"]
         winners["Change %"] = winners["Change %"].apply(lambda x: f"▲ {abs(x)}%")
         st.dataframe(winners, use_container_width=True, hide_index=True)
-    
+
     with tab2:
         st.markdown('<div class="section-header">Biggest Click Drops</div>', unsafe_allow_html=True)
         losers = merged[merged["clicks_prev"] > 0].nsmallest(20, "click_change")[
@@ -687,7 +672,6 @@ elif page == "🏷️ Brand Performance":
     curr_imp = brand_df["impressions"].sum()
     curr_ctr = round(curr_clicks / curr_imp * 100, 2) if curr_imp > 0 else 0
     curr_pos = round(brand_df["position"].mean(), 1)
-
     prev_clicks = brand_prev["clicks"].sum()
     prev_imp = brand_prev["impressions"].sum()
     prev_ctr = round(prev_clicks / prev_imp * 100, 2) if prev_imp > 0 else 0
@@ -726,7 +710,6 @@ elif page == "🏷️ Brand Performance":
             ).reset_index().sort_values("Clicks", ascending=False)
             store_perf["Avg_Position"] = store_perf["Avg_Position"].round(1)
             store_perf.columns = ["Store", "Clicks", "Impressions", "Avg Position"]
-
             fig = px.bar(store_perf, x="Store", y="Clicks",
                         color="Clicks", color_continuous_scale="Blues",
                         title="Brand + Location Clicks by Store")
@@ -772,7 +755,6 @@ elif page == "📍 Store & Local":
 
             store_agg["Status"] = store_agg["Avg_Position"].apply(rag)
             store_agg.columns = ["Store", "Clicks", "Impressions", "Avg Position", "Status"]
-
             fig = px.bar(store_agg, x="Store", y="Clicks",
                         color="Avg Position", color_continuous_scale="RdYlGn_r",
                         title="Clicks by Store Location (colour = avg position)")
@@ -780,7 +762,6 @@ elif page == "📍 Store & Local":
                              xaxis_tickangle=-45)
             st.plotly_chart(fig, use_container_width=True)
             st.dataframe(store_agg, use_container_width=True, hide_index=True)
-
             solihull = store_agg[store_agg["Store"] == "Solihull (Closed)"]
             if not solihull.empty:
                 st.info(f"ℹ️ Solihull (Closed) — {int(solihull['Clicks'].values[0]):,} clicks this period. Closed competitor location tracked for reference.")
@@ -812,7 +793,6 @@ elif page == "🌐 Online & National":
                        round(online_prev["position"].mean(), 1), lambda x: f"{x}")
 
     st.markdown("---")
-
     online_q = online_df.groupby(["query", "segment"]).agg(
         Clicks=("clicks", "sum"),
         Impressions=("impressions", "sum"),
@@ -851,7 +831,6 @@ elif page == "🔍 Query Explorer":
         CTR=("ctr", "mean"),
         Position=("position", "mean")
     ).reset_index()
-
     explorer_df["CTR"] = explorer_df["CTR"].round(2)
     explorer_df["Position"] = explorer_df["Position"].round(1)
     explorer_df = explorer_df[explorer_df["Clicks"] >= min_clicks]
@@ -862,7 +841,6 @@ elif page == "🔍 Query Explorer":
     ]
     if keyword_search:
         explorer_df = explorer_df[explorer_df["query"].str.contains(keyword_search, case=False)]
-
     explorer_df = explorer_df.sort_values("Clicks", ascending=False)
     explorer_df.columns = ["Query", "Segment", "Store", "Clicks", "Impressions", "CTR %", "Position"]
 
@@ -895,7 +873,7 @@ elif page == "⚙️ Admin & Classifications":
     # ── TAB 1: UNCLASSIFIED ──────────────────────────────────
     with tab1:
         st.markdown('<div class="section-header">Unclassified Keywords</div>', unsafe_allow_html=True)
-        st.caption("Assign segments to unclassified queries. Set multiple at once then click Save All.")
+        st.caption("Assign segments below, or export to Google Sheets for bulk classification.")
 
         other_df = df[df["segment"] == "Other"].groupby("query").agg(
             Clicks=("clicks", "sum"),
@@ -903,33 +881,42 @@ elif page == "⚙️ Admin & Classifications":
             Position=("position", "mean")
         ).reset_index().sort_values("Impressions", ascending=False)
         other_df["Position"] = other_df["Position"].round(1)
-        other_df["Assign Segment"] = "— Skip —"
 
         st.markdown(f"**{len(other_df):,} unclassified queries**")
 
         if other_df.empty:
             st.success("✓ No unclassified queries — everything has been assigned.")
         else:
-            # Build inline table with dropdowns
+            # Export to sheets button
+            col_exp1, col_exp2 = st.columns([3, 1])
+            with col_exp2:
+                if st.button("📤 Export to Google Sheet", key="export_unclassified", type="secondary"):
+                    count = export_unclassified_to_sheet(other_df)
+                    if count > 0:
+                        st.success(f"✓ Exported {count} new queries to Google Sheet. Fill in column B with segments, then reload the dashboard.")
+                    else:
+                        st.info("All queries already exist in the sheet.")
+            with col_exp1:
+                st.caption("Export all unclassified queries to Google Sheets, fill in segments there, then reload.")
+
+            st.markdown("---")
+
             segment_options = ["— Skip —"] + ALL_SEGMENTS
             store_options = ["None"] + list(STORE_LOCATIONS.keys())
-
             assignments = {}
             store_assignments = {}
 
-            # Show in batches of 25
             batch_size = 25
             total = len(other_df)
             batch_start = st.number_input(
-                "Showing rows from",
+                f"Showing rows (of {total} total)",
                 min_value=1,
                 max_value=max(1, total - batch_size + 1),
                 value=1,
                 step=batch_size
             )
-            batch_df = other_df.iloc[batch_start-1 : batch_start-1+batch_size]
+            batch_df = other_df.iloc[batch_start - 1: batch_start - 1 + batch_size]
 
-            # Header row
             h1, h2, h3, h4, h5 = st.columns([4, 1, 1, 3, 3])
             h1.markdown("**Query**")
             h2.markdown("**Clicks**")
@@ -940,8 +927,8 @@ elif page == "⚙️ Admin & Classifications":
             for _, row in batch_df.iterrows():
                 c1, c2, c3, c4, c5 = st.columns([4, 1, 1, 3, 3])
                 c1.markdown(f"`{row['query']}`")
-                c2.markdown(str(int(row['Clicks'])))
-                c3.markdown(str(int(row['Impressions'])))
+                c2.markdown(str(int(row["Clicks"])))
+                c3.markdown(str(int(row["Impressions"])))
                 seg = c4.selectbox(
                     "", segment_options,
                     key=f"seg_{row['query']}",
@@ -953,8 +940,8 @@ elif page == "⚙️ Admin & Classifications":
                     label_visibility="collapsed"
                 )
                 if seg != "— Skip —":
-                    assignments[row['query']] = seg
-                    store_assignments[row['query']] = store
+                    assignments[row["query"]] = seg
+                    store_assignments[row["query"]] = store
 
             st.markdown("---")
             col1, col2 = st.columns([3, 1])
@@ -973,19 +960,7 @@ elif page == "⚙️ Admin & Classifications":
                         st.rerun()
                     else:
                         st.warning("No segments assigned yet — use the dropdowns above.")
-st.markdown("---")
-                if st.button("📤 Export all unclassified to Google Sheet", key="export_unclassified"):
-                    service = get_sheets_service()
-                    sheet_id = st.secrets["sheets"]["sheet_id"]
-                    rows = [[row["query"], "", ""] for _, row in other_df.iterrows()]
-                    service.spreadsheets().values().append(
-                        spreadsheetId=sheet_id,
-                        range="Sheet1!A:C",
-                        valueInputOption="RAW",
-                        insertDataOption="INSERT_ROWS",
-                        body={"values": rows}
-                    ).execute()
-                    st.success(f"✓ Exported {len(rows)} queries to Google Sheet")
+
     # ── TAB 2: RECLASSIFY ANY KEYWORD ───────────────────────
     with tab2:
         st.markdown('<div class="section-header">Reclassify Any Keyword</div>', unsafe_allow_html=True)
@@ -1013,14 +988,14 @@ st.markdown("---")
         store_options_rc = ["None"] + list(STORE_LOCATIONS.keys())
 
         rc_batch_start = st.number_input(
-            "Showing rows from",
+            f"Showing rows (of {len(all_q)} total)",
             min_value=1,
             max_value=max(1, len(all_q) - 24),
             value=1,
             step=25,
             key="rc_batch"
         )
-        rc_batch = all_q.iloc[rc_batch_start-1 : rc_batch_start+24]
+        rc_batch = all_q.iloc[rc_batch_start - 1: rc_batch_start + 24]
 
         h1, h2, h3, h4, h5, h6 = st.columns([4, 1, 1, 2, 3, 2])
         h1.markdown("**Query**")
@@ -1036,9 +1011,9 @@ st.markdown("---")
         for _, row in rc_batch.iterrows():
             c1, c2, c3, c4, c5, c6 = st.columns([4, 1, 1, 2, 3, 2])
             c1.markdown(f"`{row['query']}`")
-            c2.markdown(str(int(row['Clicks'])))
-            c3.markdown(str(int(row['Impressions'])))
-            c4.markdown(row['Current_Segment'])
+            c2.markdown(str(int(row["Clicks"])))
+            c3.markdown(str(int(row["Impressions"])))
+            c4.markdown(row["Current_Segment"])
             new_seg = c5.selectbox(
                 "", segment_options_rc,
                 key=f"rc_seg_{row['query']}",
@@ -1050,8 +1025,8 @@ st.markdown("---")
                 label_visibility="collapsed"
             )
             if new_seg != "— No change —":
-                rc_assignments[row['query']] = new_seg
-                rc_stores[row['query']] = new_store
+                rc_assignments[row["query"]] = new_seg
+                rc_stores[row["query"]] = new_store
 
         st.markdown("---")
         col1, col2 = st.columns([3, 1])

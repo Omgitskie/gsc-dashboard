@@ -159,7 +159,6 @@ def get_gsc_service():
         return service
     except Exception as e:
         st.error(f"Connection error: {e}")
-        return Nonee}")
         return None
 
 @st.cache_data(ttl=3600)

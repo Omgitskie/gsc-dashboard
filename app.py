@@ -884,19 +884,18 @@ elif page == "⚙️ Admin & Classifications":
     st.markdown("# ⚙️ Admin & Classifications")
     st.caption("Manually assign or override keyword classifications. Saved to Google Sheets and applied automatically.")
 
-    # Load current manual classifications
     manual_classifications = load_classifications()
 
     tab1, tab2, tab3 = st.tabs([
         "🔴 Unclassified Keywords",
-        "✏️ Classify a Keyword",
+        "✏️ Reclassify Any Keyword",
         "📋 All Manual Classifications"
     ])
 
     # ── TAB 1: UNCLASSIFIED ──────────────────────────────────
     with tab1:
         st.markdown('<div class="section-header">Unclassified Keywords</div>', unsafe_allow_html=True)
-        st.caption("These queries are currently in 'Other' — assign them to the correct segment below.")
+        st.caption("Assign segments to unclassified queries. Set multiple at once then click Save All.")
 
         other_df = df[df["segment"] == "Other"].groupby("query").agg(
             Clicks=("clicks", "sum"),
@@ -904,105 +903,168 @@ elif page == "⚙️ Admin & Classifications":
             Position=("position", "mean")
         ).reset_index().sort_values("Impressions", ascending=False)
         other_df["Position"] = other_df["Position"].round(1)
+        other_df["Assign Segment"] = "— Skip —"
 
-        st.markdown(f"**{len(other_df):,} unclassified queries** in the current date range")
-        st.dataframe(other_df, use_container_width=True, hide_index=True, height=400)
+        st.markdown(f"**{len(other_df):,} unclassified queries**")
 
-        st.markdown("---")
-        st.markdown("**Quick classify from this list:**")
+        if other_df.empty:
+            st.success("✓ No unclassified queries — everything has been assigned.")
+        else:
+            # Build inline table with dropdowns
+            segment_options = ["— Skip —"] + ALL_SEGMENTS
+            store_options = ["None"] + list(STORE_LOCATIONS.keys())
 
-        col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
-        with col1:
-            selected_query = st.selectbox(
-                "Select query",
-                options=other_df["query"].tolist(),
-                key="unclassified_query"
+            assignments = {}
+            store_assignments = {}
+
+            # Show in batches of 25
+            batch_size = 25
+            total = len(other_df)
+            batch_start = st.number_input(
+                "Showing rows from",
+                min_value=1,
+                max_value=max(1, total - batch_size + 1),
+                value=1,
+                step=batch_size
             )
-        with col2:
-            new_segment = st.selectbox(
-                "Assign segment",
-                options=ALL_SEGMENTS,
-                key="unclassified_segment"
-            )
-        with col3:
-            new_store = st.selectbox(
-                "Store (if applicable)",
-                options=["None"] + list(STORE_LOCATIONS.keys()),
-                key="unclassified_store"
-            )
-        with col4:
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Save", key="save_unclassified"):
-                store_val = new_store if new_store != "None" else None
-                if save_classification(selected_query, new_segment, store_val):
-                    st.success(f"✓ '{selected_query}' → {new_segment}")
-                    st.rerun()
+            batch_df = other_df.iloc[batch_start-1 : batch_start-1+batch_size]
 
-    # ── TAB 2: CLASSIFY ANY KEYWORD ─────────────────────────
-    with tab2:
-        st.markdown('<div class="section-header">Classify or Override Any Keyword</div>', unsafe_allow_html=True)
-        st.caption("Search for any query and assign or update its classification.")
+            # Header row
+            h1, h2, h3, h4, h5 = st.columns([4, 1, 1, 3, 3])
+            h1.markdown("**Query**")
+            h2.markdown("**Clicks**")
+            h3.markdown("**Impr.**")
+            h4.markdown("**Assign Segment**")
+            h5.markdown("**Store (optional)**")
 
-        search_term = st.text_input("Search for a query", placeholder="e.g. vibrator, best sex toys...")
-
-        if search_term:
-            matching = df[df["query"].str.contains(search_term, case=False)].groupby("query").agg(
-                Clicks=("clicks", "sum"),
-                Impressions=("impressions", "sum"),
-                Position=("position", "mean"),
-                Segment=("segment", "first")
-            ).reset_index().sort_values("Impressions", ascending=False).head(50)
-            matching["Position"] = matching["Position"].round(1)
-            matching["Manual Override"] = matching["query"].apply(
-                lambda q: "✓ Yes" if q in manual_classifications else "—"
-            )
-
-            st.markdown(f"**{len(matching)} matching queries**")
-            st.dataframe(matching, use_container_width=True, hide_index=True)
+            for _, row in batch_df.iterrows():
+                c1, c2, c3, c4, c5 = st.columns([4, 1, 1, 3, 3])
+                c1.markdown(f"`{row['query']}`")
+                c2.markdown(str(int(row['Clicks'])))
+                c3.markdown(str(int(row['Impressions'])))
+                seg = c4.selectbox(
+                    "", segment_options,
+                    key=f"seg_{row['query']}",
+                    label_visibility="collapsed"
+                )
+                store = c5.selectbox(
+                    "", store_options,
+                    key=f"store_{row['query']}",
+                    label_visibility="collapsed"
+                )
+                if seg != "— Skip —":
+                    assignments[row['query']] = seg
+                    store_assignments[row['query']] = store
 
             st.markdown("---")
-            st.markdown("**Assign classification:**")
-
-            col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+            col1, col2 = st.columns([3, 1])
             with col1:
-                query_to_classify = st.selectbox(
-                    "Query",
-                    options=matching["query"].tolist(),
-                    key="override_query"
-                )
+                st.markdown(f"**{len(assignments)} queries** ready to save")
             with col2:
-                override_segment = st.selectbox(
-                    "Segment",
-                    options=ALL_SEGMENTS,
-                    index=ALL_SEGMENTS.index(
-                        manual_classifications.get(query_to_classify, ("Other", None))[0]
-                    ) if query_to_classify in manual_classifications else 0,
-                    key="override_segment"
-                )
-            with col3:
-                current_store = manual_classifications.get(query_to_classify, (None, None))[1]
-                override_store = st.selectbox(
-                    "Store (if applicable)",
-                    options=["None"] + list(STORE_LOCATIONS.keys()),
-                    index=(["None"] + list(STORE_LOCATIONS.keys())).index(current_store)
-                    if current_store in STORE_LOCATIONS else 0,
-                    key="override_store"
-                )
-            with col4:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("Save", key="save_override"):
-                    store_val = override_store if override_store != "None" else None
-                    if save_classification(query_to_classify, override_segment, store_val):
-                        st.success(f"✓ Saved")
+                if st.button("💾 Save All", key="save_all_unclassified", type="primary"):
+                    if assignments:
+                        saved = 0
+                        for q, seg in assignments.items():
+                            store_val = store_assignments.get(q)
+                            store_val = store_val if store_val != "None" else None
+                            if save_classification(q, seg, store_val):
+                                saved += 1
+                        st.success(f"✓ Saved {saved} classifications")
                         st.rerun()
+                    else:
+                        st.warning("No segments assigned yet — use the dropdowns above.")
+
+    # ── TAB 2: RECLASSIFY ANY KEYWORD ───────────────────────
+    with tab2:
+        st.markdown('<div class="section-header">Reclassify Any Keyword</div>', unsafe_allow_html=True)
+        st.caption("Find any keyword and update its classification inline.")
+
+        search_term = st.text_input("Filter by keyword", placeholder="Leave blank to show all...")
+
+        all_q = df.groupby("query").agg(
+            Clicks=("clicks", "sum"),
+            Impressions=("impressions", "sum"),
+            Position=("position", "mean"),
+            Current_Segment=("segment", "first")
+        ).reset_index().sort_values("Impressions", ascending=False)
+        all_q["Position"] = all_q["Position"].round(1)
+        all_q["Manual"] = all_q["query"].apply(
+            lambda q: "✓" if q in manual_classifications else ""
+        )
+
+        if search_term:
+            all_q = all_q[all_q["query"].str.contains(search_term, case=False)]
+
+        st.markdown(f"**{len(all_q):,} queries**")
+
+        segment_options_rc = ["— No change —"] + ALL_SEGMENTS
+        store_options_rc = ["None"] + list(STORE_LOCATIONS.keys())
+
+        rc_batch_start = st.number_input(
+            "Showing rows from",
+            min_value=1,
+            max_value=max(1, len(all_q) - 24),
+            value=1,
+            step=25,
+            key="rc_batch"
+        )
+        rc_batch = all_q.iloc[rc_batch_start-1 : rc_batch_start+24]
+
+        h1, h2, h3, h4, h5, h6 = st.columns([4, 1, 1, 2, 3, 2])
+        h1.markdown("**Query**")
+        h2.markdown("**Clicks**")
+        h3.markdown("**Impr.**")
+        h4.markdown("**Current**")
+        h5.markdown("**New Segment**")
+        h6.markdown("**Store**")
+
+        rc_assignments = {}
+        rc_stores = {}
+
+        for _, row in rc_batch.iterrows():
+            c1, c2, c3, c4, c5, c6 = st.columns([4, 1, 1, 2, 3, 2])
+            c1.markdown(f"`{row['query']}`")
+            c2.markdown(str(int(row['Clicks'])))
+            c3.markdown(str(int(row['Impressions'])))
+            c4.markdown(row['Current_Segment'])
+            new_seg = c5.selectbox(
+                "", segment_options_rc,
+                key=f"rc_seg_{row['query']}",
+                label_visibility="collapsed"
+            )
+            new_store = c6.selectbox(
+                "", store_options_rc,
+                key=f"rc_store_{row['query']}",
+                label_visibility="collapsed"
+            )
+            if new_seg != "— No change —":
+                rc_assignments[row['query']] = new_seg
+                rc_stores[row['query']] = new_store
+
+        st.markdown("---")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"**{len(rc_assignments)} queries** ready to save")
+        with col2:
+            if st.button("💾 Save All", key="save_all_reclassify", type="primary"):
+                if rc_assignments:
+                    saved = 0
+                    for q, seg in rc_assignments.items():
+                        store_val = rc_stores.get(q)
+                        store_val = store_val if store_val != "None" else None
+                        if save_classification(q, seg, store_val):
+                            saved += 1
+                    st.success(f"✓ Saved {saved} reclassifications")
+                    st.rerun()
+                else:
+                    st.warning("No changes made yet.")
 
     # ── TAB 3: ALL MANUAL CLASSIFICATIONS ───────────────────
     with tab3:
         st.markdown('<div class="section-header">All Manual Classifications</div>', unsafe_allow_html=True)
-        st.caption("All queries with manual overrides saved to Google Sheets.")
 
         if not manual_classifications:
-            st.info("No manual classifications saved yet. Use the tabs above to start classifying queries.")
+            st.info("No manual classifications saved yet.")
         else:
             manual_df = pd.DataFrame([
                 {"Query": q, "Segment": v[0], "Store": v[1] or "—"}
@@ -1030,7 +1092,7 @@ elif page == "⚙️ Admin & Classifications":
 
             csv = manual_df.to_csv(index=False)
             st.download_button(
-                label="⬇️ Download classifications as CSV",
+                label="⬇️ Download as CSV",
                 data=csv,
                 file_name="query_classifications.csv",
                 mime="text/csv"

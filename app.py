@@ -149,14 +149,17 @@ def classify_query(query):
 @st.cache_resource
 def get_gsc_service():
     try:
+        import json
+        credentials_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
         credentials = service_account.Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"],
+            credentials_info,
             scopes=["https://www.googleapis.com/auth/webmasters.readonly"]
         )
         service = build("searchconsole", "v1", credentials=credentials)
         return service
     except Exception as e:
         st.error(f"Connection error: {e}")
+        return Nonee}")
         return None
 
 @st.cache_data(ttl=3600)

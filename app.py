@@ -435,8 +435,8 @@ if store_filter != "All Stores":
     df_filtered = df_filtered[df_filtered["store"] == store_filter]
     df_prev_filtered = df_prev_filtered[df_prev_filtered["store"] == store_filter]
 
-df_filtered = df_filtered[df_filtered["segment"] != "Noise"]
-df_prev_filtered = df_prev_filtered[df_prev_filtered["segment"] != "Noise"]
+df_filtered = df_filtered[~df_filtered["segment"].isin(["Noise", "Not Relevant"])]
+df_prev_filtered = df_prev_filtered[~df_prev_filtered["segment"].isin(["Noise", "Not Relevant"])]
 
 # ── HELPER FUNCTIONS ─────────────────────────────────────────
 def calc_change(curr, prev):

@@ -41,6 +41,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ── ALL SEGMENTS ─────────────────────────────────────────────
+ALL_SEGMENTS = [
+    "Brand (Pure)",
+    "Brand + Location",
+    "Store & Local",
+    "Store Intent (Near Me)",
+    "Online / National",
+    "Generic Sex Shop",
+    "Product",
+    "Category",
+    "Other"
+]
+
 # ── SEGMENT DEFINITIONS ──────────────────────────────────────
 BRAND_PURE_TERMS = [
     "pulse and cocktail", "pulse & cocktail", "pulseandcocktail",
@@ -100,16 +113,151 @@ ONLINE_TERMS = [
     "website", "on line", "on-line", "internet"
 ]
 
+# ── GOOGLE SERVICES ──────────────────────────────────────────
+@st.cache_resource
+def get_credentials():
+    credentials_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+    credentials = service_account.Credentials.from_service_account_info(
+        credentials_info,
+        scopes=[
+            "https://www.googleapis.com/auth/webmasters.readonly",
+            "https://www.googleapis.com/auth/spreadsheets"
+        ]
+    )
+    return credentials
+
+@st.cache_resource
+def get_gsc_service():
+    try:
+        credentials = get_credentials()
+        service = build("searchconsole", "v1", credentials=credentials)
+        return service
+    except Exception as e:
+        st.error(f"GSC connection error: {e}")
+        return None
+
+@st.cache_resource
+def get_sheets_service():
+    try:
+        credentials = get_credentials()
+        service = build("sheets", "v4", credentials=credentials)
+        return service
+    except Exception as e:
+        st.error(f"Sheets connection error: {e}")
+        return None
+
+# ── GOOGLE SHEETS HELPERS ────────────────────────────────────
+def load_classifications():
+    """Load manual classifications from Google Sheet."""
+    try:
+        service = get_sheets_service()
+        sheet_id = st.secrets["sheets"]["sheet_id"]
+        result = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id,
+            range="Sheet1!A:C"
+        ).execute()
+        values = result.get("values", [])
+        if len(values) <= 1:
+            return {}
+        df = pd.DataFrame(values[1:], columns=["query", "segment", "store"])
+        df["store"] = df["store"].replace("", None)
+        return dict(zip(df["query"], zip(df["segment"], df["store"])))
+    except Exception as e:
+        st.warning(f"Could not load classifications: {e}")
+        return {}
+
+def save_classification(query, segment, store=None):
+    """Save or update a single classification in Google Sheet."""
+    try:
+        service = get_sheets_service()
+        sheet_id = st.secrets["sheets"]["sheet_id"]
+
+        # Load existing to check if query already exists
+        result = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id,
+            range="Sheet1!A:C"
+        ).execute()
+        values = result.get("values", [])
+
+        # Find if query exists
+        row_index = None
+        for i, row in enumerate(values):
+            if row and row[0] == query:
+                row_index = i + 1
+                break
+
+        store_val = store if store else ""
+        new_row = [query, segment, store_val]
+
+        if row_index:
+            # Update existing row
+            service.spreadsheets().values().update(
+                spreadsheetId=sheet_id,
+                range=f"Sheet1!A{row_index}:C{row_index}",
+                valueInputOption="RAW",
+                body={"values": [new_row]}
+            ).execute()
+        else:
+            # Append new row
+            service.spreadsheets().values().append(
+                spreadsheetId=sheet_id,
+                range="Sheet1!A:C",
+                valueInputOption="RAW",
+                insertDataOption="INSERT_ROWS",
+                body={"values": [new_row]}
+            ).execute()
+
+        # Clear cache so classifications reload
+        st.cache_data.clear()
+        return True
+    except Exception as e:
+        st.error(f"Could not save classification: {e}")
+        return False
+
+def delete_classification(query):
+    """Remove a classification from Google Sheet."""
+    try:
+        service = get_sheets_service()
+        sheet_id = st.secrets["sheets"]["sheet_id"]
+
+        result = service.spreadsheets().values().get(
+            spreadsheetId=sheet_id,
+            range="Sheet1!A:C"
+        ).execute()
+        values = result.get("values", [])
+
+        for i, row in enumerate(values):
+            if row and row[0] == query:
+                # Clear the row
+                service.spreadsheets().values().clear(
+                    spreadsheetId=sheet_id,
+                    range=f"Sheet1!A{i+1}:C{i+1}"
+                ).execute()
+                st.cache_data.clear()
+                return True
+        return False
+    except Exception as e:
+        st.error(f"Could not delete classification: {e}")
+        return False
+
 # ── SEGMENT CLASSIFIER ───────────────────────────────────────
-def classify_query(query):
+def classify_query(query, manual_classifications=None):
+    """Classify a query, checking manual overrides first."""
     q = query.lower().strip()
 
+    # Check manual classifications first
+    if manual_classifications and query in manual_classifications:
+        seg, store = manual_classifications[query]
+        return seg, store
+
+    # Check noise
     if any(n in q for n in NOISE_TERMS):
         if not any(b in q for b in BRAND_PURE_TERMS):
             return "Noise", None
 
     is_brand = any(b in q for b in BRAND_PURE_TERMS)
 
+    # Check store locations
     for store, terms in STORE_LOCATIONS.items():
         for term in terms:
             if term in q:
@@ -136,21 +284,6 @@ def classify_query(query):
 
     return "Other", None
 
-# ── GSC CONNECTION ───────────────────────────────────────────
-@st.cache_resource
-def get_gsc_service():
-    try:
-        credentials_info = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
-        credentials = service_account.Credentials.from_service_account_info(
-            credentials_info,
-            scopes=["https://www.googleapis.com/auth/webmasters.readonly"]
-        )
-        service = build("searchconsole", "v1", credentials=credentials)
-        return service
-    except Exception as e:
-        st.error(f"Connection error: {e}")
-        return None
-
 # ── DATA FETCHER ─────────────────────────────────────────────
 @st.cache_data(ttl=3600)
 def fetch_gsc_data(start_date, end_date):
@@ -176,11 +309,14 @@ def fetch_gsc_data(start_date, end_date):
         if not rows:
             return pd.DataFrame()
 
+        # Load manual classifications once for this fetch
+        manual = load_classifications()
+
         data = []
         for row in rows:
             query = row["keys"][0]
             date_val = row["keys"][1]
-            segment, store = classify_query(query)
+            segment, store = classify_query(query, manual)
             data.append({
                 "query": query,
                 "date": date_val,
@@ -213,13 +349,17 @@ with st.sidebar:
         "🏷️ Brand Performance",
         "📍 Store & Local",
         "🌐 Online & National",
-        "🔍 Query Explorer"
+        "🔍 Query Explorer",
+        "⚙️ Admin & Classifications"
     ])
 
     st.markdown("---")
     st.markdown("### Date Range")
 
     date_option = st.selectbox("Period", [
+        "Last 7 days",
+        "Last 2 weeks",
+        "Last month",
         "Last 3 months",
         "Last 6 months",
         "Last 12 months",
@@ -227,7 +367,16 @@ with st.sidebar:
     ])
 
     today = date.today()
-    if date_option == "Last 3 months":
+    if date_option == "Last 7 days":
+        start = today - timedelta(days=7)
+        end = today - timedelta(days=1)
+    elif date_option == "Last 2 weeks":
+        start = today - timedelta(days=14)
+        end = today - timedelta(days=1)
+    elif date_option == "Last month":
+        start = today - timedelta(days=30)
+        end = today - timedelta(days=1)
+    elif date_option == "Last 3 months":
         start = today - timedelta(days=90)
         end = today - timedelta(days=1)
     elif date_option == "Last 6 months":
@@ -249,14 +398,9 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### Filters")
-    segment_filter = st.multiselect("Segments", [
-        "Brand (Pure)", "Brand + Location", "Store & Local",
-        "Store Intent (Near Me)", "Online / National",
-        "Generic Sex Shop", "Other"
-    ], default=[
-        "Brand (Pure)", "Brand + Location", "Store & Local",
-        "Store Intent (Near Me)", "Online / National", "Generic Sex Shop"
-    ])
+    segment_filter = st.multiselect("Segments", ALL_SEGMENTS,
+        default=[s for s in ALL_SEGMENTS if s not in ["Other", "Noise"]]
+    )
 
     store_filter = st.selectbox("Store Location", ["All Stores"] + list(STORE_LOCATIONS.keys()))
 
@@ -381,7 +525,9 @@ if page == "🏠 Overview":
         "Store & Local": "#1A7A4A",
         "Store Intent (Near Me)": "#C07A00",
         "Online / National": "#8E44AD",
-        "Generic Sex Shop": "#E74C3C"
+        "Generic Sex Shop": "#E74C3C",
+        "Product": "#E67E22",
+        "Category": "#16A085"
     }
 
     cols = st.columns(len(seg))
@@ -475,7 +621,7 @@ elif page == "🏆 Winners & Losers":
 
     with tab4:
         st.markdown('<div class="section-header">High Impressions, Low CTR — Opportunity List</div>', unsafe_allow_html=True)
-        st.caption("These terms are visible but not getting clicked — title/description or position needs improving")
+        st.caption("Visible but not being clicked — title/description or position needs improving")
         opps = curr_q[curr_q["impressions"] > 50].copy()
         opps["ctr"] = (opps["clicks"] / opps["impressions"] * 100).round(2)
         opps = opps[opps["ctr"] < 5].sort_values("impressions", ascending=False).head(25)[
@@ -514,7 +660,7 @@ elif page == "🆕 New & Lost Keywords":
         st.dataframe(new_df, use_container_width=True, hide_index=True)
 
     with tab2:
-        st.caption("Queries that had impressions in the previous period but have disappeared this period")
+        st.caption("Queries that had impressions previously but have disappeared this period")
         lost_df = df_prev_filtered[df_prev_filtered["query"].isin(lost_queries)].groupby(
             ["query", "segment"]
         ).agg(
@@ -706,7 +852,6 @@ elif page == "🔍 Query Explorer":
 
     explorer_df["CTR"] = explorer_df["CTR"].round(2)
     explorer_df["Position"] = explorer_df["Position"].round(1)
-
     explorer_df = explorer_df[explorer_df["Clicks"] >= min_clicks]
     explorer_df = explorer_df[explorer_df["Impressions"] >= min_impressions]
     explorer_df = explorer_df[
@@ -729,3 +874,162 @@ elif page == "🔍 Query Explorer":
         file_name=f"gsc_queries_{start_str}_{end_str}.csv",
         mime="text/csv"
     )
+
+# ════════════════════════════════════════════════════════════
+# PAGE: ADMIN & CLASSIFICATIONS
+# ════════════════════════════════════════════════════════════
+elif page == "⚙️ Admin & Classifications":
+    st.markdown("# ⚙️ Admin & Classifications")
+    st.caption("Manually assign or override keyword classifications. Saved to Google Sheets and applied automatically.")
+
+    # Load current manual classifications
+    manual_classifications = load_classifications()
+
+    tab1, tab2, tab3 = st.tabs([
+        "🔴 Unclassified Keywords",
+        "✏️ Classify a Keyword",
+        "📋 All Manual Classifications"
+    ])
+
+    # ── TAB 1: UNCLASSIFIED ──────────────────────────────────
+    with tab1:
+        st.markdown('<div class="section-header">Unclassified Keywords</div>', unsafe_allow_html=True)
+        st.caption("These queries are currently in 'Other' — assign them to the correct segment below.")
+
+        other_df = df[df["segment"] == "Other"].groupby("query").agg(
+            Clicks=("clicks", "sum"),
+            Impressions=("impressions", "sum"),
+            Position=("position", "mean")
+        ).reset_index().sort_values("Impressions", ascending=False)
+        other_df["Position"] = other_df["Position"].round(1)
+
+        st.markdown(f"**{len(other_df):,} unclassified queries** in the current date range")
+        st.dataframe(other_df, use_container_width=True, hide_index=True, height=400)
+
+        st.markdown("---")
+        st.markdown("**Quick classify from this list:**")
+
+        col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+        with col1:
+            selected_query = st.selectbox(
+                "Select query",
+                options=other_df["query"].tolist(),
+                key="unclassified_query"
+            )
+        with col2:
+            new_segment = st.selectbox(
+                "Assign segment",
+                options=ALL_SEGMENTS,
+                key="unclassified_segment"
+            )
+        with col3:
+            new_store = st.selectbox(
+                "Store (if applicable)",
+                options=["None"] + list(STORE_LOCATIONS.keys()),
+                key="unclassified_store"
+            )
+        with col4:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Save", key="save_unclassified"):
+                store_val = new_store if new_store != "None" else None
+                if save_classification(selected_query, new_segment, store_val):
+                    st.success(f"✓ '{selected_query}' → {new_segment}")
+                    st.rerun()
+
+    # ── TAB 2: CLASSIFY ANY KEYWORD ─────────────────────────
+    with tab2:
+        st.markdown('<div class="section-header">Classify or Override Any Keyword</div>', unsafe_allow_html=True)
+        st.caption("Search for any query and assign or update its classification.")
+
+        search_term = st.text_input("Search for a query", placeholder="e.g. vibrator, best sex toys...")
+
+        if search_term:
+            matching = df[df["query"].str.contains(search_term, case=False)].groupby("query").agg(
+                Clicks=("clicks", "sum"),
+                Impressions=("impressions", "sum"),
+                Position=("position", "mean"),
+                Segment=("segment", "first")
+            ).reset_index().sort_values("Impressions", ascending=False).head(50)
+            matching["Position"] = matching["Position"].round(1)
+            matching["Manual Override"] = matching["query"].apply(
+                lambda q: "✓ Yes" if q in manual_classifications else "—"
+            )
+
+            st.markdown(f"**{len(matching)} matching queries**")
+            st.dataframe(matching, use_container_width=True, hide_index=True)
+
+            st.markdown("---")
+            st.markdown("**Assign classification:**")
+
+            col1, col2, col3, col4 = st.columns([3, 2, 2, 1])
+            with col1:
+                query_to_classify = st.selectbox(
+                    "Query",
+                    options=matching["query"].tolist(),
+                    key="override_query"
+                )
+            with col2:
+                override_segment = st.selectbox(
+                    "Segment",
+                    options=ALL_SEGMENTS,
+                    index=ALL_SEGMENTS.index(
+                        manual_classifications.get(query_to_classify, ("Other", None))[0]
+                    ) if query_to_classify in manual_classifications else 0,
+                    key="override_segment"
+                )
+            with col3:
+                current_store = manual_classifications.get(query_to_classify, (None, None))[1]
+                override_store = st.selectbox(
+                    "Store (if applicable)",
+                    options=["None"] + list(STORE_LOCATIONS.keys()),
+                    index=(["None"] + list(STORE_LOCATIONS.keys())).index(current_store)
+                    if current_store in STORE_LOCATIONS else 0,
+                    key="override_store"
+                )
+            with col4:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("Save", key="save_override"):
+                    store_val = override_store if override_store != "None" else None
+                    if save_classification(query_to_classify, override_segment, store_val):
+                        st.success(f"✓ Saved")
+                        st.rerun()
+
+    # ── TAB 3: ALL MANUAL CLASSIFICATIONS ───────────────────
+    with tab3:
+        st.markdown('<div class="section-header">All Manual Classifications</div>', unsafe_allow_html=True)
+        st.caption("All queries with manual overrides saved to Google Sheets.")
+
+        if not manual_classifications:
+            st.info("No manual classifications saved yet. Use the tabs above to start classifying queries.")
+        else:
+            manual_df = pd.DataFrame([
+                {"Query": q, "Segment": v[0], "Store": v[1] or "—"}
+                for q, v in manual_classifications.items()
+            ]).sort_values("Segment")
+
+            st.markdown(f"**{len(manual_df):,} manual classifications**")
+            st.dataframe(manual_df, use_container_width=True, hide_index=True)
+
+            st.markdown("---")
+            st.markdown("**Remove a classification** (reverts to auto-classification):")
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                query_to_delete = st.selectbox(
+                    "Select query to remove",
+                    options=manual_df["Query"].tolist(),
+                    key="delete_query"
+                )
+            with col2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("Remove", key="delete_classification"):
+                    if delete_classification(query_to_delete):
+                        st.success(f"✓ Removed '{query_to_delete}'")
+                        st.rerun()
+
+            csv = manual_df.to_csv(index=False)
+            st.download_button(
+                label="⬇️ Download classifications as CSV",
+                data=csv,
+                file_name="query_classifications.csv",
+                mime="text/csv"
+            )

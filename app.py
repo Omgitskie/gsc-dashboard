@@ -280,6 +280,8 @@ with st.spinner("Loading GSC data..."):
     )
 
 if df.empty:
+    st.write("Secrets found:", list(st.secrets.keys()))
+    st.write("GSC property:", st.secrets["gsc"]["property_url"])
     st.error("No data loaded. Check your GSC credentials and property URL in Streamlit secrets.")
     st.stop()
 

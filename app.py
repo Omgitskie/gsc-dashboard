@@ -160,7 +160,7 @@ def load_classifications():
         if len(values) <= 1:
             return {}
         padded = [row + [""] * (3 - len(row)) for row in values[1:]]
-df = pd.DataFrame(padded, columns=["query", "segment", "store"])
+        df = pd.DataFrame(padded, columns=["query", "segment", "store"])
         df["store"] = df["store"].replace("", None)
         return dict(zip(df["query"], zip(df["segment"], df["store"])))
     except Exception as e:

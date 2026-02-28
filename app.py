@@ -264,11 +264,16 @@ with st.sidebar:
 
 # ── LOAD DATA ────────────────────────────────────────────────
 with st.spinner("Loading GSC data..."):
-    df = fetch_gsc_data(start_str, end_str)
-    df_prev = fetch_gsc_data(
-        prev_start.strftime("%Y-%m-%d"),
-        prev_end.strftime("%Y-%m-%d")
-    )
+    try:
+        df = fetch_gsc_data(start_str, end_str)
+        df_prev = fetch_gsc_data(
+            prev_start.strftime("%Y-%m-%d"),
+            prev_end.strftime("%Y-%m-%d")
+        )
+    except Exception as e:
+        st.error(f"Data loading error: {e}")
+        df = pd.DataFrame()
+        df_prev = pd.DataFrame()
 
 if df.empty:
     st.write("Secrets found:", list(st.secrets.keys()))

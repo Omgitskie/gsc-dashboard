@@ -973,7 +973,19 @@ elif page == "⚙️ Admin & Classifications":
                         st.rerun()
                     else:
                         st.warning("No segments assigned yet — use the dropdowns above.")
-
+st.markdown("---")
+                if st.button("📤 Export all unclassified to Google Sheet", key="export_unclassified"):
+                    service = get_sheets_service()
+                    sheet_id = st.secrets["sheets"]["sheet_id"]
+                    rows = [[row["query"], "", ""] for _, row in other_df.iterrows()]
+                    service.spreadsheets().values().append(
+                        spreadsheetId=sheet_id,
+                        range="Sheet1!A:C",
+                        valueInputOption="RAW",
+                        insertDataOption="INSERT_ROWS",
+                        body={"values": rows}
+                    ).execute()
+                    st.success(f"✓ Exported {len(rows)} queries to Google Sheet")
     # ── TAB 2: RECLASSIFY ANY KEYWORD ───────────────────────
     with tab2:
         st.markdown('<div class="section-header">Reclassify Any Keyword</div>', unsafe_allow_html=True)

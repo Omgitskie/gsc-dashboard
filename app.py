@@ -52,6 +52,7 @@ ALL_SEGMENTS = [
     "Product",
     "Category",
     "Other"
+    "Not Relevant"
 ]
 
 # ── SEGMENT DEFINITIONS ──────────────────────────────────────

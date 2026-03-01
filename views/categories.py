@@ -15,7 +15,6 @@ CATEGORY_SEGMENTS = [
     "Store Intent (Near Me)",
     "Online / National",
     "Generic Sex Shop",
-    "Product",
     "Category",
 ]
 
@@ -26,7 +25,6 @@ SEGMENT_COLORS = {
     "Store Intent (Near Me)": "#FFB347",
     "Online / National": "#A078FF",
     "Generic Sex Shop": "#FF6B6B",
-    "Product": "#4ECDC4",
     "Category": "#45B7D1",
 }
 

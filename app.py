@@ -51,7 +51,6 @@ div[data-testid="stHorizontalBlock"] {
     gap: 10px !important;
 }
 div[data-testid="stHorizontalBlock"]:first-of-type {
-    background: rgba(8,10,28,0.8) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;

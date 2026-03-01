@@ -24,7 +24,7 @@ html, body, [class*="css"] {
 }
 .main { background: #0A0E1A !important; }
 .block-container {
-    padding: 0 !important;
+    padding: 0 2rem !important;
     max-width: 100% !important;
     background: #0A0E1A !important;
 }

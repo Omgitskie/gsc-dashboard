@@ -458,7 +458,6 @@ div[data-testid="stHorizontalBlock"]:first-of-type {
     position: sticky;
     top: 0;
     z-index: 1000;
-    gap: 4px !important;
     margin-bottom: 0 !important;
 }
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {

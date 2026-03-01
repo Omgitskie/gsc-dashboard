@@ -233,7 +233,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: rgba(226,228,236,0.3);
+    color: rgba(226,228,236,0.9);
     margin: 32px 0 16px 0;
     display: flex;
     align-items: center;

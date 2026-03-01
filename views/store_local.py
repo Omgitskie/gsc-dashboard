@@ -23,7 +23,7 @@ def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown("# 📍 Store & Local Performance")
+    st.markdown('<div class="page-title">Store <span class="pink">&amp; Local</span></div>', unsafe_allow_html=True)
 
     local_df = df_filtered[df_filtered["segment"].isin(["Store & Local", "Store Intent (Near Me)"])]
     local_prev = df_prev_filtered[df_prev_filtered["segment"].isin(["Store & Local", "Store Intent (Near Me)"])]
@@ -35,7 +35,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
                        round(local_prev["position"].mean(), 1), lambda x: f"{x}")
 
     st.markdown("---")
-    tab1, tab2 = st.tabs(["📍 By Store Location", "🔍 Near Me Searches"])
+    tab1, tab2 = st.tabs(["By Store Location", "Near Me Searches"])
 
     with tab1:
         store_df = df_filtered[df_filtered["segment"] == "Store & Local"]

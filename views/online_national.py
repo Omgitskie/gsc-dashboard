@@ -21,7 +21,7 @@ def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown("# 🌐 Online & National")
+    st.markdown('<div class="page-title">Online <span class="pink">&amp; National</span></div>', unsafe_allow_html=True)
 
     online_df = df_filtered[df_filtered["segment"].isin(["Online / National", "Generic Sex Shop"])]
     online_prev = df_prev_filtered[df_prev_filtered["segment"].isin(["Online / National", "Generic Sex Shop"])]

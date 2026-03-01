@@ -2,7 +2,7 @@ import streamlit as st
 
 
 def render(df_filtered, start_str, end_str):
-    st.markdown("# 🔍 Query Explorer")
+    st.markdown('<div class="page-title">Query <span class="pink">Explorer</span></div>', unsafe_allow_html=True)
     st.caption("Full query table — filter, sort, and export")
 
     col1, col2, col3 = st.columns(3)

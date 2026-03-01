@@ -8,7 +8,7 @@ def calc_change(curr, prev):
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown("# 🏆 Winners & Losers")
+    st.markdown('<div class="page-title">Winners <span class="pink">&amp; Losers</span></div>', unsafe_allow_html=True)
     st.markdown(f"*Comparing {start_str}–{end_str} vs previous {period_days} days*")
 
     curr_q = df_filtered.groupby(["query", "segment"]).agg(
@@ -29,8 +29,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     merged["position"] = merged["position"].round(1)
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 Click Winners", "📉 Click Losers",
-        "⬆️ Position Improvers", "⚠️ CTR Opportunities"
+        "Click Winners", "Click Losers",
+        "Position Improvers", "CTR Opportunities"
     ])
 
     with tab1:

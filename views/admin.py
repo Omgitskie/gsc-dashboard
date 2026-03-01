@@ -10,15 +10,15 @@ from utils.sheets import (
 
 
 def render(df):
-    st.markdown("# ⚙️ Admin & Classifications")
+    st.markdown('<div class="page-title">Admin <span class="pink">&amp; Classifications</span></div>', unsafe_allow_html=True)
     st.caption("Manually assign or override keyword classifications. Saved to Google Sheets and applied automatically.")
 
     manual_classifications = load_classifications()
 
     tab1, tab2, tab3 = st.tabs([
-        "🔴 Unclassified Keywords",
-        "✏️ Reclassify Any Keyword",
-        "📋 All Manual Classifications"
+        "Unclassified Keywords",
+        "Reclassify Any Keyword",
+        "All Manual Classifications"
     ])
 
     # ── TAB 1: UNCLASSIFIED ──────────────────────────────────

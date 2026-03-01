@@ -22,7 +22,7 @@ def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown("# 🏷️ Brand Performance")
+    st.markdown('<div class="page-title">Brand <span class="pink">Performance</span></div>', unsafe_allow_html=True)
 
     brand_df = df_filtered[df_filtered["segment"].isin(["Brand (Pure)", "Brand + Location"])]
     brand_prev = df_prev_filtered[df_prev_filtered["segment"].isin(["Brand (Pure)", "Brand + Location"])]
@@ -43,7 +43,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     with c4: scorecard("Brand Avg Position", curr_pos, prev_pos, lambda x: f"{x}")
 
     st.markdown("---")
-    tab1, tab2 = st.tabs(["🏷️ Brand Pure", "📍 Brand + Location"])
+    tab1, tab2 = st.tabs(["Brand Pure", "Brand + Location"])
 
     with tab1:
         pure_df = df_filtered[df_filtered["segment"] == "Brand (Pure)"]

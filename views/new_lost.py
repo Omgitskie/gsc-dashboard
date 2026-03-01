@@ -2,7 +2,7 @@ import streamlit as st
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown("# 🆕 New & Lost Keywords")
+    st.markdown('<div class="page-title">New <span class="pink">&amp; Lost</span> Keywords</div>', unsafe_allow_html=True)
     st.markdown(f"*Comparing {start_str}–{end_str} vs previous {period_days} days*")
 
     curr_queries = set(df_filtered["query"].unique())
@@ -11,8 +11,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     lost_queries = prev_queries - curr_queries
 
     tab1, tab2 = st.tabs([
-        f"🆕 New Keywords ({len(new_queries)})",
-        f"❌ Lost Keywords ({len(lost_queries)})"
+        f"New Keywords ({len(new_queries)})",
+        f"Lost Keywords ({len(lost_queries)})"
     ])
 
     with tab1:

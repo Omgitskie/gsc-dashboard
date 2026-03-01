@@ -422,11 +422,10 @@ if not st.session_state.loaded:
         <div class="load-bar-track"><div class="load-bar-fill"></div></div>
     </div>
     """, unsafe_allow_html=True)
-    fetch_gsc_data(start_str, end_str)
-    fetch_gsc_data(
-        prev_start.strftime("%Y-%m-%d"),
-        prev_end.strftime("%Y-%m-%d")
-    )
+    from datetime import date, timedelta
+    _end = date.today() - timedelta(days=1)
+    _start = _end - timedelta(days=90)
+    fetch_gsc_data(_start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"))
     st.session_state.loaded = True
     st.rerun()
 

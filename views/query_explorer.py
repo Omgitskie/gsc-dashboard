@@ -7,8 +7,6 @@ def render(df_filtered, start_str, end_str):
     <div class="page-subtitle">Filter, sort and explore every keyword</div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-
     col1, col2, col3 = st.columns(3)
     with col1:
         min_clicks = st.number_input("Min clicks", min_value=0, value=0)
@@ -48,4 +46,3 @@ def render(df_filtered, start_str, end_str):
         file_name=f"gsc_queries_{start_str}_{end_str}.csv",
         mime="text/csv"
     )
-    st.markdown('</div>', unsafe_allow_html=True)

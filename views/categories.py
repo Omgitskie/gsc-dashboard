@@ -176,7 +176,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
 
     # ── PERFORMANCE CHART ────────────────────────────────────
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-header">Performance Over Time</div>', unsafe_allow_html=True)
 
     granularity = st.selectbox("Granularity", ["Day", "Week", "Month"], index=1, key="cat_gran")
@@ -203,10 +202,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
                              zeroline=False, showgrid=False)
     fig.update_layout(**layout)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── TOP QUERIES ──────────────────────────────────────────
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-header">Top Queries</div>', unsafe_allow_html=True)
 
     top_q = df_sel.groupby(["query", "segment"]).agg(
@@ -218,12 +215,10 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     top_q["Position"] = top_q["Position"].round(1)
     top_q["CTR"] = top_q["CTR"].round(2)
     st.dataframe(top_q, use_container_width=True, hide_index=True)
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── STORE BREAKDOWN (if store segments selected) ─────────
     store_segs = ["Store & Local", "Brand + Location"]
     if any(s in selected for s in store_segs):
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-header">By Store Location</div>', unsafe_allow_html=True)
         store_df = df_sel[df_sel["store"].notna()]
         if not store_df.empty:
@@ -248,4 +243,3 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
             layout2["xaxis"]["tickangle"] = -35
             fig2.update_layout(**layout2)
             st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
-        st.markdown('</div>', unsafe_allow_html=True)

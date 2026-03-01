@@ -18,7 +18,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     ])
 
     with tab1:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.caption("Queries appearing this period that had zero impressions previously")
         new_df = df_filtered[df_filtered["query"].isin(new_queries)].groupby(
             ["query", "segment"]
@@ -29,10 +28,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         ).reset_index().sort_values("Clicks", ascending=False)
         new_df["Position"] = new_df["Position"].round(1)
         st.dataframe(new_df, use_container_width=True, hide_index=True)
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.caption("Queries that had impressions previously but have disappeared this period")
         lost_df = df_prev_filtered[df_prev_filtered["query"].isin(lost_queries)].groupby(
             ["query", "segment"]
@@ -44,4 +41,3 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         lost_df["Position"] = lost_df["Position"].round(1)
         lost_df.columns = ["Query", "Segment", "Clicks (Last Period)", "Impressions (Last Period)", "Position (Last Period)"]
         st.dataframe(lost_df, use_container_width=True, hide_index=True)
-        st.markdown('</div>', unsafe_allow_html=True)

@@ -100,7 +100,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
 
     # ── PERFORMANCE CHART ────────────────────────────────────
     st.markdown('<div class="section-header">Performance Over Time</div>', unsafe_allow_html=True)
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
     ctrl1, ctrl2 = st.columns([3, 1])
     with ctrl1:
@@ -179,7 +178,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
 
     fig.update_layout(**layout)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # ── SEGMENT BREAKDOWN ────────────────────────────────────
     st.markdown('<div class="section-header">By Segment</div>', unsafe_allow_html=True)

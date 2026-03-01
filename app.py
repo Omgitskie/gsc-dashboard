@@ -222,7 +222,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 .page-title .pink { color: #FF2D78; }
 .page-subtitle {
     font-size: 0.82rem;
-    color: rgba(226,228,236,0.35);
+    color: rgba(226,228,236,0.9);
     margin-bottom: 28px;
     font-weight: 400;
 }

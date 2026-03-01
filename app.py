@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from utils.classify import ALL_SEGMENTS, STORE_LOCATIONS
 from utils.gsc import fetch_gsc_data
-from pages import overview, winners_losers, new_lost, brand, store_local, online_national, query_explorer, admin
+from views import overview, winners_losers, new_lost, brand, store_local, online_national, query_explorer, admin
 
 # ── PAGE CONFIG ──────────────────────────────────────────────
 st.set_page_config(

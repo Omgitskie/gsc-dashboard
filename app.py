@@ -507,16 +507,17 @@ for i, (label, icon) in enumerate(NAV_PAGES):
                 {label}
             </div>
             """, unsafe_allow_html=True)
-        if st.button(f"{label}", key=f"nav_{label}", use_container_width=True):
-            st.session_state.page = label
-            st.rerun()
+        else:
+            if st.button(f"{label}", key=f"nav_{label}", use_container_width=True):
+                st.session_state.page = label
+                st.rerun()
 
 # ── DATE & FILTER CONTROLS ───────────────────────────────────
 with st.expander("⚙️ Date Range & Filters", expanded=False):
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
         date_option = st.selectbox("Period", [
-            "Last 7 days", "Last 2 weeks", "Last month",
+            "Last 7 days", "Last 2 weeks", "Last 30 days",
             "Last 3 months", "Last 6 months", "Last 12 months", "Custom"
         ])
     with col2:
@@ -533,7 +534,7 @@ if date_option == "Last 7 days":
 elif date_option == "Last 2 weeks":
     start = today - timedelta(days=14)
     end = today - timedelta(days=1)
-elif date_option == "Last month":
+elif date_option == "last 30 days":
     start = today - timedelta(days=30)
     end = today - timedelta(days=1)
 elif date_option == "Last 3 months":

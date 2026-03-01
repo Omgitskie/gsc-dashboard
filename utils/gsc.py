@@ -45,7 +45,7 @@ def fetch_gsc_data(start_date, end_date):
             body={
                 "startDate": start_date,
                 "endDate": end_date,
-                "dimensions": ["query", "date"],
+                "dimensions": ["query", "date", "page"],
                 "rowLimit": 25000,
                 "dataState": "final"
             }
@@ -61,10 +61,12 @@ def fetch_gsc_data(start_date, end_date):
         for row in rows:
             query = row["keys"][0]
             date_val = row["keys"][1]
+            page = row["keys"][2]
             segment, store = classify_query(query, manual)
             data.append({
                 "query": query,
                 "date": date_val,
+                "page": page,
                 "clicks": row.get("clicks", 0),
                 "impressions": row.get("impressions", 0),
                 "ctr": round(row.get("ctr", 0) * 100, 2),

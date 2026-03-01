@@ -121,7 +121,7 @@ div[data-testid="collapsedControl"] { display: none; }
 
 /* ── PAGE CONTENT WRAPPER ── */
 .page-content {
-    padding: 40px 48px;
+    padding: 40px 64px;
     animation: fadeUp 0.4s ease forwards;
 }
 

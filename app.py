@@ -16,203 +16,182 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
 
-/* ── RESET & BASE ── */
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background: #0A0E1A !important;
-    color: #C8CDD8 !important;
-}
-.main { background: #0A0E1A !important; }
-.block-container {
-    padding: 0 4rem !important;
-    max-width: 100% !important;
-    background: #0A0E1A !important;
+    color: #E2E4EC !important;
 }
 
-/* ── HIDE STREAMLIT CHROME ── */
+.main {
+    background:
+        radial-gradient(ellipse 80% 60% at 0% 0%, rgba(255,45,120,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 100% 100%, rgba(120,40,200,0.15) 0%, transparent 60%),
+        linear-gradient(135deg, #0A0D1F 0%, #0D0A22 40%, #0A0E2A 70%, #080B1E 100%) !important;
+    min-height: 100vh;
+}
+
+.block-container {
+    padding: 0 0 40px 0 !important;
+    max-width: 100% !important;
+    background: transparent !important;
+}
+
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 header { visibility: hidden; }
 div[data-testid="stSidebar"] { display: none; }
 div[data-testid="collapsedControl"] { display: none; }
 
-/* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0A0E1A; }
-::-webkit-scrollbar-thumb { background: #FF2D78; border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,45,120,0.5); border-radius: 4px; }
 
-/* ── TOP NAV ── */
-.nav-wrapper {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(10, 14, 26, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 0 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-}
-.nav-brand {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: #FFFFFF;
-    letter-spacing: -0.5px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-.nav-brand .pink { color: #FF2D78; }
-.nav-brand .sub {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 0.6rem;
-    font-weight: 500;
-    color: rgba(200,205,216,0.35);
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-left: 10px;
-    margin-top: 2px;
-}
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.nav-link {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: rgba(200,205,216,0.5);
-    padding: 7px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    white-space: nowrap;
-    text-decoration: none;
-}
-.nav-link:hover {
-    color: #FFFFFF;
-    background: rgba(255,255,255,0.05);
-}
-.nav-link.active {
-    color: #FF2D78;
-    background: rgba(255, 45, 120, 0.1);
-    border-color: rgba(255, 45, 120, 0.2);
-}
-.nav-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.nav-pill {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(200,205,216,0.4);
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 6px;
-    padding: 5px 10px;
-    letter-spacing: 0.3px;
+div[data-testid="stHorizontalBlock"] {
+    gap: 12px !important;
 }
 
-/* ── PAGE CONTENT WRAPPER ── */
+div[data-testid="stHorizontalBlock"]:first-of-type {
+    background: rgba(8,10,28,0.75) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+    padding: 10px 2rem !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    margin-bottom: 0 !important;
+    gap: 8px !important;
+}
+
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    border-radius: 10px !important;
+    color: rgba(226,228,236,0.5) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 9px 12px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    text-align: center !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: 0.2px !important;
+}
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+    color: #FFFFFF !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 .page-content {
-    padding: 40px 64px;
-    animation: fadeUp 0.4s ease forwards;
+    padding: 36px 2rem;
+    animation: fadeUp 0.35s ease forwards;
 }
 
-/* ── CONTROL BAR ── */
-.control-bar {
-    background: rgba(255,255,255,0.025);
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 14px;
-    padding: 16px 24px;
-    margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-/* ── METRIC CARDS ── */
 .metric-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 18px;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
     padding: 28px 24px;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fadeUp 0.5s ease forwards;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.metric-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
 }
 .metric-card::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0; left: 20%; right: 20%;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, #FF2D78 50%, transparent 100%);
-    opacity: 0.5;
+    background: linear-gradient(90deg, transparent, rgba(255,45,120,0.8), transparent);
 }
 .metric-card:hover {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,45,120,0.25);
-    transform: translateY(-3px);
-    box-shadow: 0 16px 48px rgba(255,45,120,0.2);
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,45,120,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(255,45,120,0.08);
 }
 .metric-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 2px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
-    color: rgba(200,205,216,0.35);
-    margin-bottom: 12px;
+    color: rgba(226,228,236,0.4);
+    margin-bottom: 14px;
 }
 .metric-value {
     font-family: 'Unbounded', sans-serif;
-    font-size: 2.4rem;
+    font-size: 2.3rem;
     font-weight: 900;
     color: #FFFFFF;
     line-height: 1;
     letter-spacing: -2px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
-.metric-delta {
-    font-size: 0.78rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.delta-up { color: #00D68F; }
+.metric-delta { font-size: 0.78rem; font-weight: 600; }
+.delta-up { color: #00E096; }
 .delta-down { color: #FF4D6D; }
 
-/* ── SECTION HEADER ── */
-.section-header {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: rgba(200,205,216,0.3);
-    margin: 40px 0 20px 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.section-header::after {
-    content: '';
-    flex: 1;
-    height: 1px;
+.glass-card {
     background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 18px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
 }
 
-/* ── PAGE TITLE ── */
+.seg-chip {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 16px;
+    padding: 18px 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+.seg-chip:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,45,120,0.25);
+    transform: translateY(-2px);
+}
+.seg-chip-name {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(226,228,236,0.4);
+    margin-bottom: 8px;
+}
+.seg-chip-value {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.seg-chip-delta { font-size: 0.75rem; font-weight: 600; }
+
 .page-title {
     font-family: 'Unbounded', sans-serif;
-    font-size: 2.4rem;
+    font-size: 2.2rem;
     font-weight: 900;
     color: #FFFFFF;
     letter-spacing: -1.5px;
@@ -221,52 +200,33 @@ div[data-testid="collapsedControl"] { display: none; }
 }
 .page-title .pink { color: #FF2D78; }
 .page-subtitle {
-    font-size: 0.83rem;
-    color: rgba(200,205,216,0.35);
-    margin-bottom: 36px;
+    font-size: 0.82rem;
+    color: rgba(226,228,236,0.35);
+    margin-bottom: 32px;
     font-weight: 400;
-    letter-spacing: 0.2px;
 }
 
-/* ── SEGMENT CHIPS ── */
-.seg-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 8px;
-    padding: 14px 16px;
-    text-align: left;
-    transition: all 0.25s ease;
-    animation: fadeUp 0.5s ease forwards;
-}
-.seg-chip:hover {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(255,45,120,0.2);
-}
-.seg-chip-name {
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+.section-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    color: rgba(200,205,216,0.4);
+    color: rgba(226,228,236,0.3);
+    margin: 36px 0 18px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
-.seg-chip-value {
-    font-family: 'Unbounded', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #FFFFFF;
-    letter-spacing: -1px;
-    line-height: 1.1;
-    margin: 4px 0;
+.section-header::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
 }
-.seg-chip-delta { font-size: 0.75rem; font-weight: 600; }
 
-/* ── TABS ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
-    border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
     gap: 0 !important;
     padding: 0 !important;
 }
@@ -274,7 +234,7 @@ div[data-testid="collapsedControl"] { display: none; }
     background: transparent !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
-    color: rgba(200,205,216,0.4) !important;
+    color: rgba(226,228,236,0.4) !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.83rem !important;
     font-weight: 600 !important;
@@ -288,54 +248,79 @@ div[data-testid="collapsedControl"] { display: none; }
     background: transparent !important;
 }
 
-/* ── DATAFRAME ── */
-.stDataFrame {
-    border-radius: 14px !important;
-    overflow: hidden !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
-}
-
-/* ── INPUTS ── */
 .stSelectbox > div > div,
 .stMultiSelect > div > div,
 .stTextInput > div > div,
 .stNumberInput > div > div {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(255,255,255,0.09) !important;
+    background: rgba(255,255,255,0.05) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 10px !important;
-    color: #C8CDD8 !important;
+    color: #E2E4EC !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
-/* ── BUTTONS ── */
-.stButton > button {
-    background: linear-gradient(135deg, #FF2D78 0%, #FF6BA0 100%) !important;
-    border: none !important;
-    border-radius: 10px !important;
-    color: white !important;
+.stExpander > details > summary {
+    background: rgba(255,255,255,0.04) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    padding: 14px 20px !important;
+    color: rgba(226,228,236,0.55) !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-weight: 700 !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+}
+.stExpander > details > div {
+    background: rgba(255,255,255,0.03) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-top: none !important;
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+    padding: 20px !important;
+}
+
+.stButton > button {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 10px !important;
+    color: rgba(226,228,236,0.7) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
     font-size: 0.82rem !important;
-    letter-spacing: 0.3px !important;
     padding: 10px 22px !important;
     transition: all 0.25s ease !important;
-    box-shadow: 0 4px 20px rgba(255,45,120,0.25) !important;
+    box-shadow: none !important;
 }
 .stButton > button:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 30px rgba(255,45,120,0.45) !important;
+    background: rgba(255,255,255,0.09) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+    box-shadow: none !important;
+}
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #FF2D78 0%, #FF6BA0 100%) !important;
+    border: none !important;
+    color: white !important;
+    box-shadow: 0 4px 20px rgba(255,45,120,0.3) !important;
 }
 
-/* ── DOTTED DIVIDER (Maze style) ── */
+.stDataFrame {
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255,255,255,0.07) !important;
+}
+
 .dot-divider {
     border: none;
-    border-top: 1px dashed rgba(255,255,255,0.08);
-    margin: 32px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 28px 0;
 }
 
-/* ── ANIMATIONS ── */
 @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(18px); }
     to { opacity: 1; transform: translateY(0); }
 }
 @keyframes shimmer {
@@ -352,7 +337,6 @@ div[data-testid="collapsedControl"] { display: none; }
     50% { opacity: 0.3; }
 }
 
-/* ── LOADING SCREEN ── */
 .loading-wrap {
     min-height: 100vh;
     display: flex;
@@ -360,13 +344,15 @@ div[data-testid="collapsedControl"] { display: none; }
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: #0A0E1A;
-    animation: fadeUp 0.3s ease;
+    background:
+        radial-gradient(ellipse 80% 60% at 0% 0%, rgba(255,45,120,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 100% 100%, rgba(120,40,200,0.18) 0%, transparent 60%),
+        linear-gradient(135deg, #0A0D1F 0%, #0D0A22 50%, #0A0E2A 100%);
 }
 .load-eyebrow {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 4px;
+    letter-spacing: 5px;
     text-transform: uppercase;
     color: #FF2D78;
     margin-bottom: 28px;
@@ -374,28 +360,29 @@ div[data-testid="collapsedControl"] { display: none; }
 }
 .load-headline {
     font-family: 'Unbounded', sans-serif;
-    font-size: 3.5rem;
+    font-size: 3.4rem;
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: -2px;
-    max-width: 640px;
-    background: linear-gradient(135deg, #FFFFFF 20%, #FF2D78 60%, #FFFFFF 100%);
+    max-width: 620px;
+    background: linear-gradient(135deg, #FFFFFF 15%, #FF2D78 55%, #FFFFFF 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: shimmer 3s linear infinite;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 .load-sub {
-    font-size: 0.9rem;
-    color: rgba(200,205,216,0.3);
-    margin-bottom: 56px;
-    letter-spacing: 1px;
-    font-weight: 400;
+    font-size: 0.88rem;
+    color: rgba(226,228,236,0.3);
+    margin-bottom: 52px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
 }
 .load-bar-track {
-    width: 180px;
+    width: 160px;
     height: 1px;
     background: rgba(255,255,255,0.08);
     border-radius: 1px;
@@ -403,8 +390,8 @@ div[data-testid="collapsedControl"] { display: none; }
 }
 .load-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #FF2D78, #FF6BA0);
-    animation: loadBar 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    background: linear-gradient(90deg, #FF2D78, #C020FF);
+    animation: loadBar 2.2s cubic-bezier(0.4,0,0.2,1) forwards;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -422,135 +409,62 @@ if not st.session_state.loaded:
         <div class="load-bar-track"><div class="load-bar-fill"></div></div>
     </div>
     """, unsafe_allow_html=True)
-    from datetime import date, timedelta
     _end = date.today() - timedelta(days=1)
     _start = _end - timedelta(days=90)
     fetch_gsc_data(_start.strftime("%Y-%m-%d"), _end.strftime("%Y-%m-%d"))
     st.session_state.loaded = True
     st.rerun()
 
-# ── NAV PAGES ────────────────────────────────────────────────
-NAV_ICONS = {
-    "Overview": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></rect></svg>',
-    "Winners & Losers": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
-    "New & Lost": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>',
-    "Brand": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
-    "Store & Local": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
-    "Online & National": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-    "Query Explorer": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
-    "Admin": '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-}
-
-NAV_PAGES = [
-    ("Overview", ""),
-    ("Winners & Losers", ""),
-    ("New & Lost", ""),
-    ("Brand", ""),
-    ("Store & Local", ""),
-    ("Online & National", ""),
-    ("Query Explorer", ""),
-    ("Admin", ""),
-]
-
+# ── SESSION STATE ────────────────────────────────────────────
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
+NAV_PAGES = [
+    "Overview", "Winners & Losers", "New & Lost", "Brand",
+    "Store & Local", "Online & National", "Query Explorer", "Admin"
+]
 
-# ── NAV BUTTONS ──────────────────────────────────────────────
+# ── BRAND HEADER ─────────────────────────────────────────────
 st.markdown("""
-<style>
-div[data-testid="stHorizontalBlock"] {
-    gap: 16px !important;
-}
-
-div[data-testid="stHorizontalBlock"]:first-of-type {
-    background: rgba(10, 14, 26, 0.95);
-    backdrop-filter: blur(20px);
-    padding: 0 48px;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    margin-bottom: 0 !important;
-}
-div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
-    background: transparent !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 8px !important;
-    color: rgba(200,205,216,0.5) !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 0.82rem !important;
-    font-weight: 600 !important;
-    padding: 10px 14px !important;
-    box-shadow: none !important;
-    width: 100% !important;
-    text-align: center !important;
-    justify-content: center !important;
-    transition: all 0.2s ease !important;
-    white-space: nowrap !important;
-}
-div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.04) !important;
-    border-color: rgba(255,255,255,0.2) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255,255,255,0.05) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
-/* hide button text when replaced by active div */
-div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button p {
-    margin: 0 !important;
-}
-
-.stExpander > details > summary {
-    background: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: 12px !important;
-    padding: 14px 20px !important;
-    color: rgba(200,205,216,0.6) !important;
-    font-family: 'Plus Jakarta Sans', sans-serif !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-}
-.stExpander > details > summary span {
-    color: #FF2D78 !important;
-    font-weight: 700 !important;
-}
-</style>
+<div style="padding:14px 2rem 0 2rem; display:flex; align-items:center; gap:10px;">
+    <div style="font-family:'Unbounded',sans-serif; font-size:1rem; font-weight:900; color:#FFFFFF;">
+        P<span style="color:#FF2D78;">&</span>C
+    </div>
+    <div style="font-size:0.62rem; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:rgba(226,228,236,0.25);">
+        Search Intelligence
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
+# ── NAV BUTTONS ──────────────────────────────────────────────
 nav_cols = st.columns(len(NAV_PAGES))
-for i, (label, icon) in enumerate(NAV_PAGES):
+for i, label in enumerate(NAV_PAGES):
     with nav_cols[i]:
         is_active = st.session_state.page == label
-        icon = NAV_ICONS.get(label, "")
         if is_active:
             st.markdown(f"""
-            <div style="border:1px solid #FF2D78; border-radius:8px; padding:10px 14px;
-                        text-align:center; color:#FF2D78; font-family:'Plus Jakarta Sans',sans-serif;
-                        font-size:0.82rem; font-weight:700; background:rgba(255,45,120,0.08);
-                        display:flex; align-items:center; justify-content:center; gap:6px;">
-                {icon} {label}
-            </div>
+            <div style="border:1px solid #FF2D78; border-radius:10px; padding:9px 12px;
+                text-align:center; color:#FF2D78; font-family:'Plus Jakarta Sans',sans-serif;
+                font-size:0.8rem; font-weight:700; background:rgba(255,45,120,0.1);
+                backdrop-filter:blur(10px); letter-spacing:0.2px;">{label}</div>
             """, unsafe_allow_html=True)
         else:
-            if st.button(f"{label}", key=f"nav_{label}", use_container_width=True):
+            if st.button(label, key=f"nav_{label}", use_container_width=True):
                 st.session_state.page = label
                 st.rerun()
 
 # ── DATE & FILTER CONTROLS ───────────────────────────────────
 _active_period = st.session_state.get("date_option", "Last 3 months")
 with st.expander(f"Date Range & Filters  ·  {_active_period}", expanded=False):
-    col1, col2, col3 = st.columns([2, 2, 2])
+    col1, col2, col3 = st.columns([2, 3, 2])
     with col1:
         date_option = st.selectbox("Period", [
             "Last 7 days", "Last 2 weeks", "Last 30 days",
             "Last 3 months", "Last 6 months", "Last 12 months", "Custom"
-        ], index=["Last 7 days", "Last 2 weeks", "Last 30 days", "Last 3 months", "Last 6 months", "Last 12 months", "Custom"].index(st.session_state.get("date_option", "Last 3 months")))
+        ], index=["Last 7 days", "Last 2 weeks", "Last 30 days", "Last 3 months",
+                  "Last 6 months", "Last 12 months", "Custom"].index(
+            st.session_state.get("date_option", "Last 3 months")
+        ))
         st.session_state["date_option"] = date_option
     with col2:
         segment_filter = st.multiselect("Segments", ALL_SEGMENTS,
@@ -566,7 +480,7 @@ if date_option == "Last 7 days":
 elif date_option == "Last 2 weeks":
     start = today - timedelta(days=14)
     end = today - timedelta(days=1)
-elif date_option == "last 30 days":
+elif date_option == "Last 30 days":
     start = today - timedelta(days=30)
     end = today - timedelta(days=1)
 elif date_option == "Last 3 months":

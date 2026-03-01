@@ -447,6 +447,10 @@ if "page" not in st.session_state:
 st.markdown("""
 <style>
 div[data-testid="stHorizontalBlock"] {
+    gap: 16px !important;
+}
+
+div[data-testid="stHorizontalBlock"]:first-of-type {
     background: rgba(10, 14, 26, 0.95);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255,255,255,0.06);

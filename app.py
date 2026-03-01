@@ -21,11 +21,7 @@ html, body, [class*="css"] {
     color: #E2E4EC !important;
 }
 
-.main {
-    background: transparent !important;
-}
-
-body {
+.main, .main > div, section.main, [data-testid="stAppViewContainer"] {
     background:
         radial-gradient(ellipse 80% 60% at 0% 0%, rgba(255,45,120,0.12) 0%, transparent 60%),
         radial-gradient(ellipse 60% 80% at 100% 100%, rgba(120,40,200,0.15) 0%, transparent 60%),

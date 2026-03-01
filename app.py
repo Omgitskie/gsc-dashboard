@@ -22,10 +22,15 @@ html, body, [class*="css"] {
 }
 
 .main {
+    background: transparent !important;
+}
+
+body {
     background:
         radial-gradient(ellipse 80% 60% at 0% 0%, rgba(255,45,120,0.12) 0%, transparent 60%),
         radial-gradient(ellipse 60% 80% at 100% 100%, rgba(120,40,200,0.15) 0%, transparent 60%),
         linear-gradient(135deg, #0A0D1F 0%, #0D0A22 40%, #0A0E2A 70%, #080B1E 100%) !important;
+    background-attachment: fixed !important;
     min-height: 100vh;
 }
 
@@ -87,7 +92,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 
 /* ── PAGE CONTENT ── */
 .page-content {
-    padding: 36px 2rem;
+    padding: 36px 4rem;
     animation: fadeUp 0.35s ease forwards;
 }
 

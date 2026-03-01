@@ -99,8 +99,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
     st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
 
     # ── PERFORMANCE CHART ────────────────────────────────────
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.markdown('<div class="section-header">Performance Over Time</div>', unsafe_allow_html=True)
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
     ctrl1, ctrl2 = st.columns([3, 1])
     with ctrl1:

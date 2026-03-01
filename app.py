@@ -24,7 +24,7 @@ html, body, [class*="css"] {
 }
 .main { background: #0A0E1A !important; }
 .block-container {
-    padding: 0 2rem !important;
+    padding: 0 4rem !important;
     max-width: 100% !important;
     background: #0A0E1A !important;
 }
@@ -442,57 +442,49 @@ NAV_PAGES = [
 if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
-# ── HEADER NAV ───────────────────────────────────────────────
-nav_html = """
-<div class="nav-wrapper">
-    <div style="display:flex; align-items:center; gap:0;">
-        <div class="nav-brand">
-            P<span class="pink">&</span>C
-            <span class="sub">Search Intelligence</span>
-        </div>
-    </div>
-    <div class="nav-links">
-"""
-for label, icon in NAV_PAGES:
-    active = "active" if st.session_state.page == label else ""
-    nav_html += f'<span class="nav-link {active}" id="nav-{label}">{label}</span>'
 
-nav_html += """
-    </div>
-    <div class="nav-right">
-        <span class="nav-pill">GSC Live</span>
-    </div>
-</div>
-"""
-st.markdown(nav_html, unsafe_allow_html=True)
-
-# ── NAV BUTTONS (hidden but functional) ─────────────────────
-nav_cols = st.columns(len(NAV_PAGES))
-for i, (label, icon) in enumerate(NAV_PAGES):
-    with nav_cols[i]:
-        if st.button(f"{icon} {label}", key=f"nav_{label}", use_container_width=True):
-            st.session_state.page = label
-            st.rerun()
-
-# Hide the actual buttons visually — nav_html above is the display
+# ── NAV BUTTONS ──────────────────────────────────────────────
 st.markdown("""
 <style>
-div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
-    opacity: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    pointer-events: auto !important;
-    position: absolute !important;
+div[data-testid="stHorizontalBlock"] {
+    background: rgba(10, 14, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 48px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    gap: 4px !important;
+    margin-bottom: 0 !important;
 }
-div[data-testid="stHorizontalBlock"]:first-of-type {
-    position: relative;
-    top: -64px;
-    margin-bottom: -64px;
-    z-index: 1001;
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: rgba(200,205,216,0.5) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    padding: 18px 14px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+}
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
+    color: #FFFFFF !important;
+    background: rgba(255,255,255,0.05) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
+nav_cols = st.columns(len(NAV_PAGES))
+for i, (label, icon) in enumerate(NAV_PAGES):
+    with nav_cols[i]:
+        if st.button(f"{label}", key=f"nav_{label}", use_container_width=True):
+            st.session_state.page = label
+            st.rerun()
 
 # ── DATE & FILTER CONTROLS ───────────────────────────────────
 with st.expander("⚙️ Date Range & Filters", expanded=False):

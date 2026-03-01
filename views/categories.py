@@ -1,6 +1,5 @@
 import streamlit as st
 import plotly.graph_objects as go
-import plotly.express as px
 
 
 def calc_change(curr, prev):
@@ -80,6 +79,20 @@ def chart_layout(height=300):
     )
 
 
+def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
+    change = calc_change(value, prev_value)
+    delta_class = "delta-up" if change >= 0 else "delta-down"
+    arrow = "▲" if change >= 0 else "▼"
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">{label}</div>
+        <div class="metric-value">{format_fn(value)}</div>
+        <div class="metric-delta {delta_class}">{arrow} {abs(change)}% vs prev</div>
+        <div class="metric-prev">prev: {format_fn(prev_value)}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     st.markdown("""
     <div class="page-title">Search <span class="pink">Categories</span></div>
@@ -94,40 +107,23 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     for i, seg in enumerate(CATEGORY_SEGMENTS):
         with cols[i]:
             is_active = seg in st.session_state.selected_categories
+            color = SEGMENT_COLORS.get(seg, "#FF2D78")
             if is_active:
-                color = SEGMENT_COLORS.get(seg, "#FF2D78")
                 st.markdown(f"""
                 <div style="border:1px solid {color}; border-radius:10px; padding:9px 12px;
                     text-align:center; color:{color}; font-family:'Plus Jakarta Sans',sans-serif;
                     font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.06);
-                    backdrop-filter:blur(10px);">{seg}</div>
+                    backdrop-filter:blur(10px);">{seg} ✕</div>
                 """, unsafe_allow_html=True)
-                if st.button("", key=f"cat_{seg}", use_container_width=True):
-                    if len(st.session_state.selected_categories) > 1:
-                        st.session_state.selected_categories.remove(seg)
-                    st.rerun()
             else:
-                if st.button("", key=f"cat_{seg}", use_container_width=True):
+                if st.button(seg, key=f"cat_{seg}", use_container_width=True):
                     st.session_state.selected_categories.append(seg)
                     st.rerun()
 
-    # Hide zero-width button text
-    st.markdown("""
-    <style>
-    div[data-testid="stHorizontalBlock"]:not(:first-of-type) > div > div > div > .stButton > button {
-        opacity: 0 !important;
-        position: absolute !important;
-        top: 0 !important; left: 0 !important;
-        width: 100% !important; height: 100% !important;
-        padding: 0 !important;
-        z-index: 10 !important;
-        cursor: pointer !important;
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    if len(st.session_state.selected_categories) > 1:
+        if st.button("Clear selection", key="cat_clear"):
+            st.session_state.selected_categories = [CATEGORY_SEGMENTS[0]]
+            st.rerun()
 
     selected = st.session_state.selected_categories
     df_sel = df_filtered[df_filtered["segment"].isin(selected)]
@@ -149,19 +145,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     prev_ctr = round(prev_clicks / prev_imp * 100, 2) if prev_imp > 0 else 0
     prev_pos = round(df_prev_sel["position"].mean(), 1)
 
-    def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
-        change = calc_change(value, prev_value)
-        delta_class = "delta-up" if change >= 0 else "delta-down"
-        arrow = "▲" if change >= 0 else "▼"
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">{label}</div>
-            <div class="metric-value">{format_fn(value)}</div>
-            <div class="metric-delta {delta_class}">{arrow} {abs(change)}% vs prev</div>
-            <div class="metric-prev">prev: {format_fn(prev_value)}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
     c1, c2, c3, c4 = st.columns(4)
     with c1: scorecard("Clicks", curr_clicks, prev_clicks)
     with c2: scorecard("Impressions", curr_imp, prev_imp)
@@ -173,30 +156,72 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     # ── PERFORMANCE CHART ────────────────────────────────────
     st.markdown('<div class="section-header">Performance Over Time</div>', unsafe_allow_html=True)
 
-    granularity = st.selectbox("Granularity", ["Day", "Week", "Month"], index=1, key="cat_gran")
+    ctrl1, ctrl2 = st.columns([3, 1])
+    with ctrl1:
+        metrics_selected = st.multiselect(
+            "Show metrics",
+            ["Clicks", "Impressions", "CTR", "Position"],
+            default=["Clicks", "Impressions"],
+            key="cat_metrics"
+        )
+    with ctrl2:
+        granularity = st.selectbox("Granularity", ["Day", "Week", "Month"], index=1, key="cat_gran")
+
     agg = get_period_data(df_sel, granularity)
+    agg["CTR"] = agg["CTR"].round(2)
+    agg["Position"] = agg["Position"].round(1)
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=agg["period"], y=agg["Clicks"],
-        name="Clicks",
-        line=dict(color="#FF2D78", width=2),
-        fill="tozeroy", fillcolor="rgba(255,45,120,0.06)",
-        hovertemplate="<b>%{y:,}</b> clicks<extra></extra>"
-    ))
-    fig.add_trace(go.Scatter(
-        x=agg["period"], y=agg["Impressions"],
-        name="Impressions",
-        line=dict(color="rgba(160,120,255,0.7)", width=1.5),
-        yaxis="y2",
-        hovertemplate="<b>%{y:,}</b> impressions<extra></extra>"
-    ))
+
+    if "Clicks" in metrics_selected:
+        fig.add_trace(go.Scatter(
+            x=agg["period"], y=agg["Clicks"],
+            name="Clicks",
+            line=dict(color="#FF2D78", width=2),
+            fill="tozeroy", fillcolor="rgba(255,45,120,0.06)",
+            yaxis="y",
+            hovertemplate="<b>%{y:,}</b> clicks<extra></extra>"
+        ))
+    if "Impressions" in metrics_selected:
+        fig.add_trace(go.Scatter(
+            x=agg["period"], y=agg["Impressions"],
+            name="Impressions",
+            line=dict(color="rgba(160,120,255,0.8)", width=1.5),
+            yaxis="y2",
+            hovertemplate="<b>%{y:,}</b> impressions<extra></extra>"
+        ))
+    if "CTR" in metrics_selected:
+        fig.add_trace(go.Scatter(
+            x=agg["period"], y=agg["CTR"],
+            name="CTR %",
+            line=dict(color="#00E096", width=1.5, dash="dot"),
+            yaxis="y3",
+            hovertemplate="CTR <b>%{y}%</b><extra></extra>"
+        ))
+    if "Position" in metrics_selected:
+        fig.add_trace(go.Scatter(
+            x=agg["period"], y=agg["Position"],
+            name="Position",
+            line=dict(color="#FFB347", width=1.5, dash="dash"),
+            yaxis="y4",
+            hovertemplate="Position <b>%{y}</b><extra></extra>"
+        ))
+
     layout = chart_layout(320)
     layout["yaxis2"] = dict(overlaying="y", side="right", gridcolor="rgba(0,0,0,0)",
                              color="rgba(226,228,236,0.3)", tickfont=dict(size=10),
                              zeroline=False, showgrid=False)
+    layout["yaxis3"] = dict(overlaying="y", side="right", gridcolor="rgba(0,0,0,0)",
+                             color="rgba(226,228,236,0.3)", tickfont=dict(size=10),
+                             zeroline=False, showgrid=False, showticklabels=False)
+    layout["yaxis4"] = dict(overlaying="y", side="right", gridcolor="rgba(0,0,0,0)",
+                             color="rgba(226,228,236,0.3)", tickfont=dict(size=10),
+                             zeroline=False, showgrid=False, showticklabels=False,
+                             autorange="reversed")
     fig.update_layout(**layout)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+    st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
 
     # ── TOP QUERIES ──────────────────────────────────────────
     st.markdown('<div class="section-header">Top Queries</div>', unsafe_allow_html=True)
@@ -211,9 +236,10 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     top_q["CTR"] = top_q["CTR"].round(2)
     st.dataframe(top_q, use_container_width=True, hide_index=True)
 
-    # ── STORE BREAKDOWN (if store segments selected) ─────────
+    # ── STORE BREAKDOWN ──────────────────────────────────────
     store_segs = ["Store & Local", "Brand + Location"]
     if any(s in selected for s in store_segs):
+        st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
         st.markdown('<div class="section-header">By Store Location</div>', unsafe_allow_html=True)
         store_df = df_sel[df_sel["store"].notna()]
         if not store_df.empty:

@@ -505,6 +505,21 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button p {
     margin: 0 !important;
 }
+
+.stExpander > details > summary {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 12px !important;
+    padding: 14px 20px !important;
+    color: rgba(200,205,216,0.6) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+}
+.stExpander > details > summary span {
+    color: #FF2D78 !important;
+    font-weight: 700 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -528,13 +543,15 @@ for i, (label, icon) in enumerate(NAV_PAGES):
                 st.rerun()
 
 # ── DATE & FILTER CONTROLS ───────────────────────────────────
-with st.expander("⚙️ Date Range & Filters", expanded=False):
+_active_period = st.session_state.get("date_option", "Last 3 months")
+with st.expander(f"Date Range & Filters  ·  {_active_period}", expanded=False):
     col1, col2, col3 = st.columns([2, 2, 2])
     with col1:
         date_option = st.selectbox("Period", [
             "Last 7 days", "Last 2 weeks", "Last 30 days",
             "Last 3 months", "Last 6 months", "Last 12 months", "Custom"
-        ])
+        ], index=["Last 7 days", "Last 2 weeks", "Last 30 days", "Last 3 months", "Last 6 months", "Last 12 months", "Custom"].index(st.session_state.get("date_option", "Last 3 months")))
+        st.session_state["date_option"] = date_option
     with col2:
         segment_filter = st.multiselect("Segments", ALL_SEGMENTS,
             default=[s for s in ALL_SEGMENTS if s not in ["Other", "Noise", "Not Relevant"]]

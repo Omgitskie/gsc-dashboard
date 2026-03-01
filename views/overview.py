@@ -216,7 +216,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
             """, unsafe_allow_html=True)
 
     # ── SEGMENT BREAKDOWN ────────────────────────────────────
-    st.markdown('<div class="section-header">By Segment</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Clicks By Segment</div>', unsafe_allow_html=True)
 
     seg_curr = df_filtered.groupby("segment").agg(Clicks=("clicks", "sum")).reset_index()
     seg_prev = df_prev_filtered.groupby("segment").agg(Clicks_prev=("clicks", "sum")).reset_index()
@@ -245,6 +245,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
             <div class="seg-chip" style="border-top: 2px solid {color};">
                 <div class="seg-chip-name">{row['segment']}</div>
                 <div class="seg-chip-value">{int(row['Clicks']):,}</div>
+                <div style="font-size:0.65rem; color:rgba(226,228,236,0.25); margin-bottom:4px; letter-spacing:1px; text-transform:uppercase;">clicks</div>
                 <div class="seg-chip-delta" style="color:{change_color};">
                     {arrow} {abs(row['Change'])}%
                 </div>

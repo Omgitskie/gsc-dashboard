@@ -87,8 +87,13 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 
 /* ── PAGE CONTENT ── */
 .page-content {
-    padding: 36px 4rem;
+    padding: 36px 3.5rem;
     animation: fadeUp 0.35s ease forwards;
+}
+
+[data-testid="stAppViewContainer"] > section > div {
+    padding-left: 3.5rem !important;
+    padding-right: 3.5rem !important;
 }
 
 /* ── GLASS METRIC CARD ── */

@@ -160,7 +160,7 @@ div[data-testid="collapsedControl"] { display: none; }
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,45,120,0.25);
     transform: translateY(-3px);
-    box-shadow: 0 16px 48px rgba(255,45,120,0.08);
+    box-shadow: 0 16px 48px rgba(255,45,120,0.2);
 }
 .metric-label {
     font-size: 0.68rem;
@@ -422,8 +422,11 @@ if not st.session_state.loaded:
         <div class="load-bar-track"><div class="load-bar-fill"></div></div>
     </div>
     """, unsafe_allow_html=True)
-    import time
-    time.sleep(2)
+    fetch_gsc_data(start_str, end_str)
+    fetch_gsc_data(
+        prev_start.strftime("%Y-%m-%d"),
+        prev_end.strftime("%Y-%m-%d")
+    )
     st.session_state.loaded = True
     st.rerun()
 

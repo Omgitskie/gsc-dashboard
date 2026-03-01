@@ -453,6 +453,11 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     background: linear-gradient(90deg, #FF2D78, #C020FF);
     animation: loadBar 2.2s cubic-bezier(0.4,0,0.2,1) forwards;
 }
+
+[data-testid="stMain"] {
+    padding-left: 3.5rem !important;
+    padding-right: 3.5rem !important;
+}
 </style>
 """, unsafe_allow_html=True)
 

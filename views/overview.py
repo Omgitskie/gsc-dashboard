@@ -1,6 +1,5 @@
 import streamlit as st
 import plotly.graph_objects as go
-import plotly.express as px
 
 
 def calc_change(curr, prev):
@@ -11,21 +10,24 @@ def calc_change(curr, prev):
 
 def scorecard(label, value, prev_value, format_fn=lambda x: f"{x:,}"):
     change = calc_change(value, prev_value)
-    delta_class = "metric-delta-positive" if change >= 0 else "metric-delta-negative"
+    delta_class = "delta-up" if change >= 0 else "delta-down"
     arrow = "▲" if change >= 0 else "▼"
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">{label}</div>
         <div class="metric-value">{format_fn(value)}</div>
-        <div class="{delta_class}">{arrow} {abs(change)}% vs prev period</div>
+        <div class="metric-delta {delta_class}">{arrow} {abs(change)}% vs prev period</div>
     </div>
     """, unsafe_allow_html=True)
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown('<div class="page-title">Overview</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="page-subtitle">{start_str} → {end_str} &nbsp;·&nbsp; compared to previous {period_days} days</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="page-title">Search <span class="pink">Overview</span></div>
+    <div class="page-subtitle">{start_str} &nbsp;→&nbsp; {end_str} &nbsp;·&nbsp; vs previous {period_days} days</div>
+    """, unsafe_allow_html=True)
 
+    # ── SCORECARDS ───────────────────────────────────────────
     curr_clicks = df_filtered["clicks"].sum()
     curr_imp = df_filtered["impressions"].sum()
     curr_ctr = round(curr_clicks / curr_imp * 100, 2) if curr_imp > 0 else 0
@@ -41,7 +43,10 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     with c3: scorecard("Avg CTR", curr_ctr, prev_ctr, lambda x: f"{x}%")
     with c4: scorecard("Avg Position", curr_pos, prev_pos, lambda x: f"{x}")
 
-    st.markdown('<div class="section-header">Clicks & Impressions Over Time</div>', unsafe_allow_html=True)
+    st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
+
+    # ── CLICKS CHART ─────────────────────────────────────────
+    st.markdown('<div class="section-header">Performance Over Time</div>', unsafe_allow_html=True)
 
     weekly = df_filtered.copy()
     weekly["week"] = weekly["date"].dt.to_period("W").dt.start_time
@@ -53,57 +58,70 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=weekly_agg["week"], y=weekly_agg["Clicks"],
-        name="Clicks", line=dict(color="#FF2D78", width=2.5),
-        fill="tozeroy", fillcolor="rgba(255,45,120,0.08)"
+        name="Clicks",
+        line=dict(color="#FF2D78", width=2),
+        fill="tozeroy",
+        fillcolor="rgba(255,45,120,0.06)",
+        hovertemplate="<b>%{y:,}</b> clicks<extra></extra>"
     ))
     fig.add_trace(go.Scatter(
         x=weekly_agg["week"], y=weekly_agg["Impressions"],
-        name="Impressions", line=dict(color="rgba(255,255,255,0.4)", width=1.5),
-        yaxis="y2"
+        name="Impressions",
+        line=dict(color="rgba(200,205,216,0.25)", width=1.5),
+        yaxis="y2",
+        hovertemplate="<b>%{y:,}</b> impressions<extra></extra>"
     ))
     fig.update_layout(
-        height=320,
-        margin=dict(l=0, r=0, t=10, b=0),
+        height=300,
+        margin=dict(l=0, r=0, t=8, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         legend=dict(
-            orientation="h", y=1.1,
-            font=dict(color="rgba(232,234,240,0.6)", size=12)
+            orientation="h", y=1.12, x=0,
+            font=dict(color="rgba(200,205,216,0.45)", size=11, family="Plus Jakarta Sans"),
+            bgcolor="rgba(0,0,0,0)"
         ),
         yaxis=dict(
-            title="", gridcolor="rgba(255,255,255,0.05)",
-            color="rgba(232,234,240,0.4)", tickfont=dict(size=11)
+            gridcolor="rgba(255,255,255,0.04)",
+            color="rgba(200,205,216,0.3)",
+            tickfont=dict(size=10, family="Plus Jakarta Sans"),
+            zeroline=False
         ),
         yaxis2=dict(
-            title="", overlaying="y", side="right",
-            color="rgba(232,234,240,0.4)", tickfont=dict(size=11),
-            gridcolor="rgba(0,0,0,0)"
+            overlaying="y", side="right",
+            gridcolor="rgba(0,0,0,0)",
+            color="rgba(200,205,216,0.3)",
+            tickfont=dict(size=10, family="Plus Jakarta Sans"),
+            zeroline=False
         ),
         hovermode="x unified",
         hoverlabel=dict(
-            bgcolor="#1A1F2E",
-            bordercolor="rgba(255,45,120,0.4)",
-            font=dict(color="#E8EAF0", size=12)
+            bgcolor="#151929",
+            bordercolor="rgba(255,45,120,0.3)",
+            font=dict(color="#E8EAF0", size=12, family="Plus Jakarta Sans")
         )
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown('<div class="section-header">Performance by Segment</div>', unsafe_allow_html=True)
+    st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
+
+    # ── SEGMENT BREAKDOWN ────────────────────────────────────
+    st.markdown('<div class="section-header">By Segment</div>', unsafe_allow_html=True)
 
     seg_curr = df_filtered.groupby("segment").agg(
-        Clicks=("clicks", "sum"),
-        Impressions=("impressions", "sum")
+        Clicks=("clicks", "sum")
     ).reset_index()
     seg_prev = df_prev_filtered.groupby("segment").agg(
         Clicks_prev=("clicks", "sum")
     ).reset_index()
     seg = seg_curr.merge(seg_prev, on="segment", how="left").fillna(0)
     seg["Change"] = seg.apply(lambda r: calc_change(r["Clicks"], r["Clicks_prev"]), axis=1)
+    seg = seg.sort_values("Clicks", ascending=False)
 
     colors = {
         "Brand (Pure)": "#FF2D78",
-        "Brand + Location": "#FF6B9D",
-        "Store & Local": "#00E5A0",
+        "Brand + Location": "#FF6BA0",
+        "Store & Local": "#00D68F",
         "Store Intent (Near Me)": "#FFB347",
         "Online / National": "#7B68EE",
         "Generic Sex Shop": "#FF6B6B",
@@ -114,57 +132,63 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     cols = st.columns(len(seg))
     for i, (_, row) in enumerate(seg.iterrows()):
         with cols[i]:
-            color = colors.get(row["segment"], "#666")
-            change_color = "#00E5A0" if row["Change"] >= 0 else "#FF4D6D"
+            color = colors.get(row["segment"], "#555")
+            change_color = "#00D68F" if row["Change"] >= 0 else "#FF4D6D"
             arrow = "▲" if row["Change"] >= 0 else "▼"
             st.markdown(f"""
-            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
-                        border-radius:14px; padding:16px 12px; text-align:center;
-                        border-top: 3px solid {color};
-                        transition: all 0.3s ease;
-                        animation: fadeSlideUp 0.5s ease forwards;">
-                <div style="font-size:0.7rem; color:rgba(232,234,240,0.4); text-transform:uppercase;
-                            letter-spacing:1px; margin-bottom:8px; font-weight:500;">{row['segment']}</div>
-                <div style="font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800;
-                            color:#FFFFFF; line-height:1;">{int(row['Clicks']):,}</div>
-                <div style="font-size:0.72rem; color:rgba(232,234,240,0.3); margin:3px 0;">clicks</div>
-                <div style="font-size:0.8rem; color:{change_color}; font-weight:500; margin-top:6px;">
-                    {arrow} {abs(row['Change'])}%
+            <div class="seg-chip" style="border-top: 2px solid {color};">
+                <div>
+                    <div class="seg-chip-name">{row['segment']}</div>
+                    <div class="seg-chip-value">{int(row['Clicks']):,}</div>
+                    <div class="seg-chip-delta" style="color:{change_color};">
+                        {arrow} {abs(row['Change'])}%
+                    </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
+    st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
+
+    # ── POSITION CHART ───────────────────────────────────────
     st.markdown('<div class="section-header">Average Position Over Time</div>', unsafe_allow_html=True)
 
     pos_weekly = df_filtered.copy()
     pos_weekly["week"] = pos_weekly["date"].dt.to_period("W").dt.start_time
-    pos_agg = pos_weekly.groupby("week").agg(Position=("position", "mean")).reset_index()
+    pos_agg = pos_weekly.groupby("week").agg(
+        Position=("position", "mean")
+    ).reset_index()
     pos_agg["Position"] = pos_agg["Position"].round(1)
 
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(
         x=pos_agg["week"], y=pos_agg["Position"],
         line=dict(color="#FF2D78", width=2),
-        fill="tozeroy", fillcolor="rgba(255,45,120,0.05)",
-        name="Avg Position"
+        fill="tozeroy",
+        fillcolor="rgba(255,45,120,0.05)",
+        hovertemplate="Position <b>%{y}</b><extra></extra>"
     ))
     fig2.update_yaxes(
         autorange="reversed",
-        gridcolor="rgba(255,255,255,0.05)",
-        color="rgba(232,234,240,0.4)",
-        tickfont=dict(size=11)
+        gridcolor="rgba(255,255,255,0.04)",
+        color="rgba(200,205,216,0.3)",
+        tickfont=dict(size=10, family="Plus Jakarta Sans"),
+        zeroline=False
     )
-    fig2.update_xaxes(color="rgba(232,234,240,0.4)", tickfont=dict(size=11))
+    fig2.update_xaxes(
+        color="rgba(200,205,216,0.3)",
+        tickfont=dict(size=10, family="Plus Jakarta Sans"),
+        gridcolor="rgba(0,0,0,0)"
+    )
     fig2.update_layout(
-        height=240,
-        margin=dict(l=0, r=0, t=10, b=0),
+        height=220,
+        margin=dict(l=0, r=0, t=8, b=0),
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         hoverlabel=dict(
-            bgcolor="#1A1F2E",
-            bordercolor="rgba(255,45,120,0.4)",
-            font=dict(color="#E8EAF0", size=12)
+            bgcolor="#151929",
+            bordercolor="rgba(255,45,120,0.3)",
+            font=dict(color="#E8EAF0", size=12, family="Plus Jakarta Sans")
         )
     )
     st.plotly_chart(fig2, use_container_width=True)

@@ -179,6 +179,42 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
     fig.update_layout(**layout)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
+    st.markdown('<hr class="dot-divider">', unsafe_allow_html=True)
+
+    # ── KEYWORD DISTRIBUTION ─────────────────────────────────
+    st.markdown('<div class="section-header">Keyword Distribution Across Search Pages</div>', unsafe_allow_html=True)
+
+    def kw_bucket(df, low, high):
+        return df[(df["position"] >= low) & (df["position"] <= high)]["query"].nunique()
+
+    buckets = [
+        ("Top 3", "#1–3", 1, 3),
+        ("Top 10", "#4–10", 4, 10),
+        ("Top 20", "#11–20", 11, 20),
+        ("Rest", "#21+", 21, 999),
+    ]
+
+    b1, b2, b3, b4 = st.columns(4)
+    bucket_cols = [b1, b2, b3, b4]
+
+    for col, (label, range_label, low, high) in zip(bucket_cols, buckets):
+        curr_count = kw_bucket(df_filtered, low, high)
+        prev_count = kw_bucket(df_prev_filtered, low, high)
+        change = calc_change(curr_count, prev_count)
+        diff = curr_count - prev_count
+        delta_class = "delta-up" if change >= 0 else "delta-down"
+        arrow = "▲" if change >= 0 else "▼"
+        diff_arrow = "▲" if diff >= 0 else "▼"
+        with col:
+            st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-label">{label} <span style="color:rgba(226,228,236,0.3); font-size:0.6rem;">{range_label}</span></div>
+                <div class="metric-value">{curr_count:,}</div>
+                <div class="metric-delta {delta_class}">{diff_arrow} {abs(diff)} &nbsp;·&nbsp; {arrow} {abs(change)}%</div>
+                <div class="metric-prev">prev: {prev_count:,}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
     # ── SEGMENT BREAKDOWN ────────────────────────────────────
     st.markdown('<div class="section-header">By Segment</div>', unsafe_allow_html=True)
 

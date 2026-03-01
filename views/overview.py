@@ -37,7 +37,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     prev_ctr = round(prev_clicks / prev_imp * 100, 2) if prev_imp > 0 else 0
     prev_pos = round(df_prev_filtered["position"].mean(), 1)
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4 = st.columns(4, gap="medium")
     with c1: scorecard("Total Clicks", curr_clicks, prev_clicks)
     with c2: scorecard("Total Impressions", curr_imp, prev_imp)
     with c3: scorecard("Avg CTR", curr_ctr, prev_ctr, lambda x: f"{x}%")
@@ -129,7 +129,8 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         "Category": "#45B7D1"
     }
 
-    cols = st.columns(len(seg))
+    num_segs = len(seg)
+    cols = st.columns(num_segs, gap="medium")
     for i, (_, row) in enumerate(seg.iterrows()):
         with cols[i]:
             color = colors.get(row["segment"], "#555")

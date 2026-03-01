@@ -122,7 +122,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
 
     if len(st.session_state.selected_categories) > 1:
         if st.button("Clear selection", key="cat_clear"):
-            st.session_state.selected_categories = [CATEGORY_SEGMENTS[0]]
+            st.session_state.selected_categories = []
             st.rerun()
 
     selected = st.session_state.selected_categories

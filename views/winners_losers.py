@@ -8,15 +8,17 @@ def calc_change(curr, prev):
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown('<div class="page-title">Winners <span class="pink">&amp; Losers</span></div>', unsafe_allow_html=True)
-    st.markdown(f"*Comparing {start_str}–{end_str} vs previous {period_days} days*")
+    st.markdown("""
+    <div class="page-title">Winners <span class="pink">&amp; Losers</span></div>
+    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="page-subtitle">{start_str} → {end_str} &nbsp;·&nbsp; vs previous {period_days} days</div>', unsafe_allow_html=True)
 
     curr_q = df_filtered.groupby(["query", "segment"]).agg(
         clicks=("clicks", "sum"),
         impressions=("impressions", "sum"),
         position=("position", "mean")
     ).reset_index()
-    prev_q = df_prev_filtered.groupby(["query"]).agg(
+    prev_q = df_prev_filtered.groupby("query").agg(
         clicks_prev=("clicks", "sum"),
         position_prev=("position", "mean")
     ).reset_index()
@@ -34,33 +36,40 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     ])
 
     with tab1:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-header">Biggest Click Increases</div>', unsafe_allow_html=True)
         winners = merged[merged["clicks_prev"] > 0].nlargest(20, "click_change")[
             ["query", "segment", "clicks", "clicks_prev", "click_change", "click_change_pct", "position"]
         ].copy()
-        winners.columns = ["Query", "Segment", "Clicks (Now)", "Clicks (Prev)", "Change", "Change %", "Position"]
+        winners.columns = ["Query", "Segment", "Clicks", "Clicks (Prev)", "Change", "Change %", "Position"]
         winners["Change %"] = winners["Change %"].apply(lambda x: f"▲ {abs(x)}%")
         st.dataframe(winners, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-header">Biggest Click Drops</div>', unsafe_allow_html=True)
         losers = merged[merged["clicks_prev"] > 0].nsmallest(20, "click_change")[
             ["query", "segment", "clicks", "clicks_prev", "click_change", "click_change_pct", "position"]
         ].copy()
-        losers.columns = ["Query", "Segment", "Clicks (Now)", "Clicks (Prev)", "Change", "Change %", "Position"]
+        losers.columns = ["Query", "Segment", "Clicks", "Clicks (Prev)", "Change", "Change %", "Position"]
         losers["Change %"] = losers["Change %"].apply(lambda x: f"▼ {abs(x)}%")
         st.dataframe(losers, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with tab3:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.markdown('<div class="section-header">Biggest Position Improvements</div>', unsafe_allow_html=True)
         pos_up = merged[merged["position_prev"] > 0].nlargest(20, "pos_change")[
             ["query", "segment", "position", "position_prev", "pos_change", "clicks"]
         ].copy()
-        pos_up.columns = ["Query", "Segment", "Position (Now)", "Position (Prev)", "Improvement", "Clicks"]
+        pos_up.columns = ["Query", "Segment", "Position", "Position (Prev)", "Improvement", "Clicks"]
         st.dataframe(pos_up, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with tab4:
-        st.markdown('<div class="section-header">High Impressions, Low CTR — Opportunity List</div>', unsafe_allow_html=True)
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">High Impressions, Low CTR — Opportunities</div>', unsafe_allow_html=True)
         st.caption("Visible but not being clicked — title/description or position needs improving")
         opps = curr_q[curr_q["impressions"] > 50].copy()
         opps["ctr"] = (opps["clicks"] / opps["impressions"] * 100).round(2)
@@ -69,3 +78,4 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         ]
         opps.columns = ["Query", "Segment", "Impressions", "Clicks", "CTR %", "Position"]
         st.dataframe(opps, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)

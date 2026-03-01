@@ -2,8 +2,10 @@ import streamlit as st
 
 
 def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
-    st.markdown('<div class="page-title">New <span class="pink">&amp; Lost</span> Keywords</div>', unsafe_allow_html=True)
-    st.markdown(f"*Comparing {start_str}–{end_str} vs previous {period_days} days*")
+    st.markdown("""
+    <div class="page-title">New <span class="pink">&amp; Lost</span> Keywords</div>
+    """, unsafe_allow_html=True)
+    st.markdown(f'<div class="page-subtitle">{start_str} → {end_str} &nbsp;·&nbsp; vs previous {period_days} days</div>', unsafe_allow_html=True)
 
     curr_queries = set(df_filtered["query"].unique())
     prev_queries = set(df_prev_filtered["query"].unique())
@@ -11,12 +13,13 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
     lost_queries = prev_queries - curr_queries
 
     tab1, tab2 = st.tabs([
-        f"New Keywords ({len(new_queries)})",
-        f"Lost Keywords ({len(lost_queries)})"
+        f"New Keywords ({len(new_queries):,})",
+        f"Lost Keywords ({len(lost_queries):,})"
     ])
 
     with tab1:
-        st.caption("Queries appearing this period that had zero impressions in the previous period")
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.caption("Queries appearing this period that had zero impressions previously")
         new_df = df_filtered[df_filtered["query"].isin(new_queries)].groupby(
             ["query", "segment"]
         ).agg(
@@ -26,8 +29,10 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         ).reset_index().sort_values("Clicks", ascending=False)
         new_df["Position"] = new_df["Position"].round(1)
         st.dataframe(new_df, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
         st.caption("Queries that had impressions previously but have disappeared this period")
         lost_df = df_prev_filtered[df_prev_filtered["query"].isin(lost_queries)].groupby(
             ["query", "segment"]
@@ -39,3 +44,4 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
         lost_df["Position"] = lost_df["Position"].round(1)
         lost_df.columns = ["Query", "Segment", "Clicks (Last Period)", "Impressions (Last Period)", "Position (Last Period)"]
         st.dataframe(lost_df, use_container_width=True, hide_index=True)
+        st.markdown('</div>', unsafe_allow_html=True)

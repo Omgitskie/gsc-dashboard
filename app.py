@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from utils.classify import ALL_SEGMENTS, STORE_LOCATIONS
 from utils.gsc import fetch_gsc_data
-from views import overview, winners_losers, new_lost, brand, store_local, online_national, query_explorer, admin
+from views import overview, winners_losers, new_lost, categories, query_explorer, admin
 
 st.set_page_config(
     page_title="P&C | Search Intelligence",
@@ -30,7 +30,7 @@ html, body, [class*="css"] {
 }
 
 .block-container {
-    padding: 0 0 40px 0 !important;
+    padding: 0 0 60px 0 !important;
     max-width: 100% !important;
     background: transparent !important;
 }
@@ -45,23 +45,24 @@ div[data-testid="collapsedControl"] { display: none; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,45,120,0.5); border-radius: 4px; }
 
+/* ── NAV ROW ── */
 div[data-testid="stHorizontalBlock"] {
-    gap: 12px !important;
+    gap: 10px !important;
 }
-
 div[data-testid="stHorizontalBlock"]:first-of-type {
-    background: rgba(8,10,28,0.75) !important;
+    background: rgba(8,10,28,0.8) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;
     padding: 10px 2rem !important;
     position: sticky !important;
     top: 0 !important;
-    z-index: 1000 !important;
+    z-index: 999 !important;
     margin-bottom: 0 !important;
     gap: 8px !important;
 }
 
+/* ── NAV BUTTONS ── */
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
     background: rgba(255,255,255,0.04) !important;
     border: 1px solid rgba(255,255,255,0.09) !important;
@@ -75,7 +76,6 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
     width: 100% !important;
     text-align: center !important;
     transition: all 0.2s ease !important;
-    letter-spacing: 0.2px !important;
 }
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
     background: rgba(255,255,255,0.08) !important;
@@ -85,11 +85,13 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     box-shadow: none !important;
 }
 
+/* ── PAGE CONTENT ── */
 .page-content {
     padding: 36px 2rem;
     animation: fadeUp 0.35s ease forwards;
 }
 
+/* ── GLASS METRIC CARD ── */
 .metric-card {
     background: rgba(255,255,255,0.06);
     backdrop-filter: blur(16px);
@@ -100,6 +102,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     position: relative;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    height: 100%;
 }
 .metric-card::before {
     content: '';
@@ -132,28 +135,40 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 }
 .metric-value {
     font-family: 'Unbounded', sans-serif;
-    font-size: 2.3rem;
+    font-size: 2.1rem;
     font-weight: 900;
     color: #FFFFFF;
     line-height: 1;
     letter-spacing: -2px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
-.metric-delta { font-size: 0.78rem; font-weight: 600; }
+.metric-delta { font-size: 0.76rem; font-weight: 600; margin-bottom: 2px; }
+.metric-prev { font-size: 0.72rem; color: rgba(226,228,236,0.3); font-weight: 400; }
 .delta-up { color: #00E096; }
 .delta-down { color: #FF4D6D; }
 
+/* ── GLASS CONTENT CARD ── */
 .glass-card {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255,255,255,0.09);
     border-radius: 18px;
-    padding: 24px;
+    padding: 28px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 20px;
+}
+.glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    pointer-events: none;
 }
 
+/* ── SEGMENT CHIPS ── */
 .seg-chip {
     background: rgba(255,255,255,0.05);
     backdrop-filter: blur(12px);
@@ -180,18 +195,19 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 }
 .seg-chip-value {
     font-family: 'Unbounded', sans-serif;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 900;
     color: #FFFFFF;
     letter-spacing: -1px;
     line-height: 1;
     margin-bottom: 6px;
 }
-.seg-chip-delta { font-size: 0.75rem; font-weight: 600; }
+.seg-chip-delta { font-size: 0.73rem; font-weight: 600; }
 
+/* ── PAGE TITLE ── */
 .page-title {
     font-family: 'Unbounded', sans-serif;
-    font-size: 2.2rem;
+    font-size: 2.1rem;
     font-weight: 900;
     color: #FFFFFF;
     letter-spacing: -1.5px;
@@ -202,17 +218,18 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 .page-subtitle {
     font-size: 0.82rem;
     color: rgba(226,228,236,0.35);
-    margin-bottom: 32px;
+    margin-bottom: 28px;
     font-weight: 400;
 }
 
+/* ── SECTION HEADER ── */
 .section-header {
-    font-size: 0.68rem;
+    font-size: 0.67rem;
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
     color: rgba(226,228,236,0.3);
-    margin: 36px 0 18px 0;
+    margin: 32px 0 16px 0;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -224,6 +241,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
 }
 
+/* ── TABS ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid rgba(255,255,255,0.07) !important;
@@ -248,6 +266,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     background: transparent !important;
 }
 
+/* ── INPUTS ── */
 .stSelectbox > div > div,
 .stMultiSelect > div > div,
 .stTextInput > div > div,
@@ -260,6 +279,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     font-family: 'Plus Jakarta Sans', sans-serif !important;
 }
 
+/* ── EXPANDER ── */
 .stExpander > details > summary {
     background: rgba(255,255,255,0.04) !important;
     backdrop-filter: blur(12px) !important;
@@ -281,6 +301,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     padding: 20px !important;
 }
 
+/* ── BUTTONS ── */
 .stButton > button {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
@@ -298,7 +319,6 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     border-color: rgba(255,255,255,0.18) !important;
     color: #FFFFFF !important;
     transform: translateY(-1px) !important;
-    box-shadow: none !important;
 }
 .stButton > button[kind="primary"] {
     background: linear-gradient(135deg, #FF2D78 0%, #FF6BA0 100%) !important;
@@ -307,18 +327,52 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     box-shadow: 0 4px 20px rgba(255,45,120,0.3) !important;
 }
 
+/* ── DATAFRAME ── */
 .stDataFrame {
     border-radius: 14px !important;
     overflow: hidden !important;
     border: 1px solid rgba(255,255,255,0.07) !important;
 }
 
+/* ── DIVIDER ── */
 .dot-divider {
     border: none;
     border-top: 1px solid rgba(255,255,255,0.06);
     margin: 28px 0;
 }
 
+/* ── CATEGORY TOGGLE BUTTONS ── */
+.cat-btn-active {
+    display: inline-block;
+    border: 1px solid #FF2D78;
+    border-radius: 10px;
+    padding: 9px 16px;
+    text-align: center;
+    color: #FF2D78;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: rgba(255,45,120,0.1);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    width: 100%;
+}
+.cat-btn-inactive {
+    display: inline-block;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 10px;
+    padding: 9px 16px;
+    text-align: center;
+    color: rgba(226,228,236,0.5);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.04);
+    cursor: pointer;
+    width: 100%;
+}
+
+/* ── ANIMATIONS ── */
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(18px); }
     to { opacity: 1; transform: translateY(0); }
@@ -337,6 +391,7 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     50% { opacity: 0.3; }
 }
 
+/* ── LOADING SCREEN ── */
 .loading-wrap {
     min-height: 100vh;
     display: flex;
@@ -420,8 +475,8 @@ if "page" not in st.session_state:
     st.session_state.page = "Overview"
 
 NAV_PAGES = [
-    "Overview", "Winners & Losers", "New & Lost", "Brand",
-    "Store & Local", "Online & National", "Query Explorer", "Admin"
+    "Overview", "Winners & Losers", "New & Lost",
+    "Categories", "Query Explorer", "Admin"
 ]
 
 # ── BRAND HEADER ─────────────────────────────────────────────
@@ -446,7 +501,7 @@ for i, label in enumerate(NAV_PAGES):
             <div style="border:1px solid #FF2D78; border-radius:10px; padding:9px 12px;
                 text-align:center; color:#FF2D78; font-family:'Plus Jakarta Sans',sans-serif;
                 font-size:0.8rem; font-weight:700; background:rgba(255,45,120,0.1);
-                backdrop-filter:blur(10px); letter-spacing:0.2px;">{label}</div>
+                backdrop-filter:blur(10px);">{label}</div>
             """, unsafe_allow_html=True)
         else:
             if st.button(label, key=f"nav_{label}", use_container_width=True):
@@ -455,8 +510,13 @@ for i, label in enumerate(NAV_PAGES):
 
 # ── DATE & FILTER CONTROLS ───────────────────────────────────
 _active_period = st.session_state.get("date_option", "Last 3 months")
-with st.expander(f"Date Range & Filters  ·  {_active_period}", expanded=False):
-    col1, col2, col3 = st.columns([2, 3, 2])
+_active_compare = st.session_state.get("compare_option", "Previous Period")
+
+with st.expander(
+    f"Date Range & Filters  ·  {_active_period}  ·  vs {_active_compare}",
+    expanded=False
+):
+    col1, col2, col3, col4 = st.columns([2, 2, 3, 2])
     with col1:
         date_option = st.selectbox("Period", [
             "Last 7 days", "Last 2 weeks", "Last 30 days",
@@ -467,10 +527,17 @@ with st.expander(f"Date Range & Filters  ·  {_active_period}", expanded=False):
         ))
         st.session_state["date_option"] = date_option
     with col2:
+        compare_option = st.selectbox("Compare with", [
+            "Previous Period", "Same Period Last Year"
+        ], index=["Previous Period", "Same Period Last Year"].index(
+            st.session_state.get("compare_option", "Previous Period")
+        ))
+        st.session_state["compare_option"] = compare_option
+    with col3:
         segment_filter = st.multiselect("Segments", ALL_SEGMENTS,
             default=[s for s in ALL_SEGMENTS if s not in ["Other", "Noise", "Not Relevant"]]
         )
-    with col3:
+    with col4:
         store_filter = st.selectbox("Store", ["All Stores"] + list(STORE_LOCATIONS.keys()))
 
 today = date.today()
@@ -502,8 +569,14 @@ else:
 start_str = start.strftime("%Y-%m-%d")
 end_str = end.strftime("%Y-%m-%d")
 period_days = (end - start).days
-prev_end = start - timedelta(days=1)
-prev_start = prev_end - timedelta(days=period_days)
+
+# ── COMPARISON PERIOD ────────────────────────────────────────
+if compare_option == "Previous Period":
+    prev_end = start - timedelta(days=1)
+    prev_start = prev_end - timedelta(days=period_days)
+else:  # Same Period Last Year
+    prev_start = start - timedelta(days=365)
+    prev_end = end - timedelta(days=365)
 
 # ── LOAD DATA ────────────────────────────────────────────────
 with st.spinner(""):
@@ -540,17 +613,13 @@ st.markdown('<div class="page-content">', unsafe_allow_html=True)
 page = st.session_state.page
 
 if page == "Overview":
-    overview.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
+    overview.render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compare_option)
 elif page == "Winners & Losers":
     winners_losers.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
 elif page == "New & Lost":
     new_lost.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
-elif page == "Brand":
-    brand.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
-elif page == "Store & Local":
-    store_local.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
-elif page == "Online & National":
-    online_national.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
+elif page == "Categories":
+    categories.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
 elif page == "Query Explorer":
     query_explorer.render(df_filtered, start_str, end_str)
 elif page == "Admin":

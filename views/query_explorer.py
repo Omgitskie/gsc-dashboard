@@ -2,8 +2,12 @@ import streamlit as st
 
 
 def render(df_filtered, start_str, end_str):
-    st.markdown('<div class="page-title">Query <span class="pink">Explorer</span></div>', unsafe_allow_html=True)
-    st.caption("Full query table — filter, sort, and export")
+    st.markdown("""
+    <div class="page-title">Query <span class="pink">Explorer</span></div>
+    <div class="page-subtitle">Filter, sort and explore every keyword</div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -34,13 +38,14 @@ def render(df_filtered, start_str, end_str):
     explorer_df = explorer_df.sort_values("Clicks", ascending=False)
     explorer_df.columns = ["Query", "Segment", "Store", "Clicks", "Impressions", "CTR %", "Position"]
 
-    st.markdown(f"**{len(explorer_df):,} queries** matching current filters")
-    st.dataframe(explorer_df, use_container_width=True, hide_index=True, height=600)
+    st.markdown(f"**{len(explorer_df):,} queries** matching filters")
+    st.dataframe(explorer_df, use_container_width=True, hide_index=True, height=550)
 
     csv = explorer_df.to_csv(index=False)
     st.download_button(
-        label="⬇️ Download as CSV",
+        label="⬇️ Download CSV",
         data=csv,
         file_name=f"gsc_queries_{start_str}_{end_str}.csv",
         mime="text/csv"
     )
+    st.markdown('</div>', unsafe_allow_html=True)

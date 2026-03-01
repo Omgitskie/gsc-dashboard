@@ -453,7 +453,6 @@ div[data-testid="stHorizontalBlock"] {
 div[data-testid="stHorizontalBlock"]:first-of-type {
     background: rgba(10, 14, 26, 0.95);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
     padding: 0 48px;
     position: sticky;
     top: 0;
@@ -462,16 +461,26 @@ div[data-testid="stHorizontalBlock"]:first-of-type {
 }
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button {
     background: transparent !important;
-    border: none !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
     color: rgba(200,205,216,0.5) !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.82rem !important;
     font-weight: 600 !important;
-    padding: 18px 14px !important;
+    padding: 10px 14px !important;
     box-shadow: none !important;
     width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
     transition: all 0.2s ease !important;
+    white-space: nowrap !important;
+}
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
+    color: #FFFFFF !important;
+    background: rgba(255,255,255,0.04) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    transform: none !important;
+    box-shadow: none !important;
 }
 div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hover {
     color: #FFFFFF !important;
@@ -479,12 +488,25 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     transform: none !important;
     box-shadow: none !important;
 }
+/* hide button text when replaced by active div */
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button p {
+    margin: 0 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 nav_cols = st.columns(len(NAV_PAGES))
 for i, (label, icon) in enumerate(NAV_PAGES):
     with nav_cols[i]:
+        is_active = st.session_state.page == label
+        if is_active:
+            st.markdown(f"""
+            <div style="border:1px solid #FF2D78; border-radius:8px; padding:10px 14px;
+                        text-align:center; color:#FF2D78; font-family:'Plus Jakarta Sans',sans-serif;
+                        font-size:0.82rem; font-weight:700; background:rgba(255,45,120,0.08);">
+                {label}
+            </div>
+            """, unsafe_allow_html=True)
         if st.button(f"{label}", key=f"nav_{label}", use_container_width=True):
             st.session_state.page = label
             st.rerun()

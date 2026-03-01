@@ -458,6 +458,22 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     padding-left: 3.5rem !important;
     padding-right: 3.5rem !important;
 }
+
+div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:empty {
+    opacity: 0 !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 10 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+}
 </style>
 """, unsafe_allow_html=True)
 

@@ -107,11 +107,6 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days):
                         st.session_state.selected_categories.remove(seg)
                     st.rerun()
             else:
-                st.markdown(f"""
-                <div style="border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:9px 12px;
-                    text-align:center; color:rgba(226,228,236,0.45); font-family:'Plus Jakarta Sans',sans-serif;
-                    font-size:0.75rem; font-weight:600; background:rgba(255,255,255,0.03);">{seg}</div>
-                """, unsafe_allow_html=True)
                 if st.button("", key=f"cat_{seg}", use_container_width=True):
                     st.session_state.selected_categories.append(seg)
                     st.rerun()

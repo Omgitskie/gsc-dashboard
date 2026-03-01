@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from utils.classify import ALL_SEGMENTS, STORE_LOCATIONS
 from utils.gsc import fetch_gsc_data
-from views import overview, winners_losers, new_lost, categories, query_explorer, admin
+from views import overview, winners_losers, new_lost, categories, page_performance, query_explorer, admin
 
 st.set_page_config(
     page_title="P&C | Search Intelligence",
@@ -502,7 +502,7 @@ if "page" not in st.session_state:
 
 NAV_PAGES = [
     "Overview", "Winners & Losers", "New & Lost",
-    "Categories", "Query Explorer", "Admin"
+    "Categories", "Page Performance", "Query Explorer"
 ]
 
 # ── BRAND HEADER ─────────────────────────────────────────────
@@ -646,9 +646,20 @@ elif page == "New & Lost":
     new_lost.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
 elif page == "Categories":
     categories.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
+elif page == "Page Performance":
+    page_performance.render(df_filtered, df_prev_filtered, start_str, end_str, period_days)
 elif page == "Query Explorer":
     query_explorer.render(df_filtered, start_str, end_str)
-elif page == "Admin":
-    admin.render(df)
 
 st.markdown('</div>', unsafe_allow_html=True)
+
+# ── FOOTER ADMIN LINK ────────────────────────────────────────
+st.markdown('<hr style="border:none; border-top:1px solid rgba(255,255,255,0.05); margin:40px 0 16px 0;">', unsafe_allow_html=True)
+col_l, col_r = st.columns([6, 1])
+with col_r:
+    if st.button("⚙️ Admin", key="footer_admin"):
+        st.session_state.page = "Admin"
+        st.rerun()
+
+if st.session_state.page == "Admin":
+    admin.render(df)

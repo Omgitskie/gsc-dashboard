@@ -106,7 +106,7 @@ def render(df_filtered, df_prev_filtered, start_str, end_str, period_days, compa
         metrics_selected = st.multiselect(
             "Show metrics",
             ["Clicks", "Impressions", "CTR", "Position"],
-            default=["Clicks", "Impressions"],
+            default=["Clicks", "Impressions", "CTR", "Position"],
             key="overview_metrics"
         )
     with ctrl2:

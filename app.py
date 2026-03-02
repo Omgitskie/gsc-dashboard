@@ -52,8 +52,6 @@ div[data-testid="stHorizontalBlock"] {
 }
 div[data-testid="stHorizontalBlock"]:first-of-type {
     backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
     padding: 10px 2rem !important;
     position: sticky !important;
     top: 0 !important;
@@ -249,14 +247,12 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 /* ── TABS ── */
 .stTabs [data-baseweb="tab-list"] {
     background: transparent !important;
-    border-bottom: 1px solid rgba(255,255,255,0.07) !important;
     gap: 0 !important;
     padding: 0 !important;
 }
 .stTabs [data-baseweb="tab"] {
     background: transparent !important;
     border: none !important;
-    border-bottom: 2px solid transparent !important;
     color: rgba(226,228,236,0.4) !important;
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-size: 0.83rem !important;
@@ -267,7 +263,6 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
 }
 .stTabs [aria-selected="true"] {
     color: #FF2D78 !important;
-    border-bottom: 2px solid #FF2D78 !important;
     background: transparent !important;
 }
 
@@ -485,28 +480,6 @@ if "show_intro" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.markdown("""
-    <style>
-    .password-wrap {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-    .stTextInput > div > div {
-        background: rgba(255,255,255,0.06) !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        border-radius: 12px !important;
-        color: #E2E4EC !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1rem !important;
-        text-align: center !important;
-        padding: 12px !important;
-        width: 300px !important;
-        backdrop-filter: blur(12px) !important;
-    }
-    </style>
     <div class="password-wrap">
         <div class="load-eyebrow">Pulse &amp; Cocktails</div>
         <div class="load-headline">Search<br>Intelligence</div>

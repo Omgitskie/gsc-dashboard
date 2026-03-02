@@ -144,8 +144,9 @@ def classify_page(url):
         return "Homepage"
     if "sex-shops-near-me" in path:
         return "Store Page"
+    path_parts = path.strip("/").split("/")
     for loc in UK_LOCATIONS:
-        if loc in path:
+        if any(part == loc or part.startswith(loc + "-") for part in path_parts):
             return "Store Page"
     if slug in CATEGORY_SLUGS:
         return "Category Page"

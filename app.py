@@ -526,7 +526,7 @@ if not st.session_state.authenticated:
                 st.error("Incorrect access code")
     st.stop()
 
- ───────────────────────────────────────────
+# ── LOADING SCREEN ───────────────────────────────────────────
 if "loaded" not in st.session_state:
     st.session_state.loaded = False
 

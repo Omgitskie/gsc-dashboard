@@ -12,6 +12,27 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ── PASSWORD PROTECTION ──────────────────────────────────────
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.markdown("""
+    <div class="loading-wrap">
+        <div class="load-eyebrow">Pulse &amp; Cocktails</div>
+        <div class="load-headline">Search<br>Intelligence</div>
+        <div class="load-sub">Enter password to continue</div>
+    </div>
+    """, unsafe_allow_html=True)
+    password = st.text_input("", type="password", placeholder="Enter password")
+    if st.button("Enter", use_container_width=False):
+        if password == st.secrets["auth"]["password"]:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect password")
+    st.stop()
+
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');

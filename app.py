@@ -12,55 +12,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ── PASSWORD PROTECTION ──────────────────────────────────────
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-if "show_intro" not in st.session_state:
-    st.session_state.show_intro = False
-
-if not st.session_state.authenticated:
-    st.markdown("""
-    <style>
-    .password-wrap {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-    .stTextInput > div > div {
-        background: rgba(255,255,255,0.06) !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
-        border-radius: 12px !important;
-        color: #E2E4EC !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-size: 1rem !important;
-        text-align: center !important;
-        padding: 12px !important;
-        width: 300px !important;
-        backdrop-filter: blur(12px) !important;
-    }
-    </style>
-    <div class="password-wrap">
-        <div class="load-eyebrow">Pulse &amp; Cocktails</div>
-        <div class="load-headline">Search<br>Intelligence</div>
-        <div class="load-sub">Enter your access code to continue</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns([2, 1, 2])
-    with col2:
-        password = st.text_input("", type="password", placeholder="••••••••", label_visibility="collapsed")
-        if st.button("Enter →", use_container_width=True):
-            if password == st.secrets["auth"]["password"]:
-                st.session_state.authenticated = True
-                st.session_state.loaded = False
-                st.rerun()
-            else:
-                st.error("Incorrect access code")
-    st.stop()
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Unbounded:wght@700;800;900&display=swap');
@@ -526,7 +477,56 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:empt
 </style>
 """, unsafe_allow_html=True)
 
-# ── LOADING SCREEN ───────────────────────────────────────────
+# ── PASSWORD PROTECTION ──────────────────────────────────────
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "show_intro" not in st.session_state:
+    st.session_state.show_intro = False
+
+if not st.session_state.authenticated:
+    st.markdown("""
+    <style>
+    .password-wrap {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .stTextInput > div > div {
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        border-radius: 12px !important;
+        color: #E2E4EC !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-size: 1rem !important;
+        text-align: center !important;
+        padding: 12px !important;
+        width: 300px !important;
+        backdrop-filter: blur(12px) !important;
+    }
+    </style>
+    <div class="password-wrap">
+        <div class="load-eyebrow">Pulse &amp; Cocktails</div>
+        <div class="load-headline">Search<br>Intelligence</div>
+        <div class="load-sub">Enter your access code to continue</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        password = st.text_input("", type="password", placeholder="••••••••", label_visibility="collapsed")
+        if st.button("Enter →", use_container_width=True):
+            if password == st.secrets["auth"]["password"]:
+                st.session_state.authenticated = True
+                st.session_state.loaded = False
+                st.rerun()
+            else:
+                st.error("Incorrect access code")
+    st.stop()
+
+ ───────────────────────────────────────────
 if "loaded" not in st.session_state:
     st.session_state.loaded = False
 

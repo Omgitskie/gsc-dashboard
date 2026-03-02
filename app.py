@@ -391,6 +391,16 @@ div[data-testid="stHorizontalBlock"] > div > div > div > .stButton > button:hove
     50% { opacity: 0.3; }
 }
 
+/* ── PASSWORD SCREEN ── */
+.password-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 15vh 0 0 0;
+}
+
 /* ── LOADING SCREEN ── */
 .loading-wrap {
     min-height: 100vh;
@@ -505,11 +515,13 @@ if "loaded" not in st.session_state:
 
 if not st.session_state.loaded:
     st.markdown("""
-    <div class="loading-wrap">
+    <style>
+    [data-testid="stMain"] { padding-left: 0 !important; padding-right: 0 !important; }
+    </style>
+    <div class="password-wrap">
         <div class="load-eyebrow">Pulse &amp; Cocktails</div>
-        <div class="load-headline">Every search<br>tells a story</div>
-        <div class="load-sub">Search Intelligence Dashboard</div>
-        <div class="load-bar-track"><div class="load-bar-fill"></div></div>
+        <div class="load-headline">Search<br>Intelligence</div>
+        <div class="load-sub">Enter your access code to continue</div>
     </div>
     """, unsafe_allow_html=True)
     _end = date.today() - timedelta(days=1)
